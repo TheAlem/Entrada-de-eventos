@@ -1,117 +1,257 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+import { saveDataToFirestore, listenToFirestoreUpdates } from '../Firebase/PersonalData/BkForm';
+import 'tailwindcss/tailwind.css';
 
 function PersonalDataForm() {
     const [formData, setFormData] = useState({
-        name: '',
+        firstName: '',
+        lastName: '',
+        birthDate: '',
+        country: '',
+        academicLevel: '',
+        companyName: '',
+        universityName: '',
+        profession: '',
         email: '',
         phone: '',
-        country: '',
-        comments: ''
+        studentId: null
     });
+    const [tickets, setTickets] = useState([]);
+    const [message, setMessage] = useState('');
+
+    useEffect(() => {
+        listenToFirestoreUpdates(setTickets);
+    }, []);
 
     const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
+        const { name, value, files } = e.target;
+        if (name === "studentId") {
+            setFormData({
+                ...formData,
+                [name]: files[0]
+            });
+        } else {
+            setFormData({
+                ...formData,
+                [name]: value
+            });
+        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const response = await fetch('https://tu-backend-heroku.com/api/personal-data', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-        });
-        const result = await response.json();
+        const uniqueToken = uuidv4();
+        const formDataWithToken = { ...formData, token: uniqueToken };
+
+        const result = await saveDataToFirestore(formDataWithToken);
         if (result.success) {
-            window.location.href = '/payment';
+            if (formData.academicLevel === 'Student') {
+                setMessage('Tus datos están en revisión. Serás redirigido una vez sean aprobados.');
+            } else {
+                window.location.href = '/payment';
+            }
         } else {
             alert('Error al enviar los datos');
         }
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-            <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-8 w-full max-w-lg">
-                <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-6">Datos Personales</h2>
-                <form onSubmit={handleSubmit}>
-                    <div className="mb-4">
-                        <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre</label>
-                        <input
-                            id="name"
-                            name="name"
-                            type="text"
-                            value={formData.name}
-                            onChange={handleChange}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
-                            required
-                        />
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-r">
+            <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-2xl">
+                <h2 className="text-3xl font-extrabold text-gray-800 mb-8 text-center">Datos Personales</h2>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="relative">
+                            <input
+                                type="text"
+                                name="firstName"
+                                id="firstName"
+                                value={formData.firstName}
+                                onChange={handleChange}
+                                className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-indigo-600 placeholder-transparent pt-4 pb-1"
+                                placeholder="Nombre"
+                                required
+                                pattern="[A-Za-z\s]+"
+                                title="Solo se permiten letras y espacios"
+                            />
+                            <label htmlFor="firstName" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Nombre</label>
+                        </div>
+                        <div className="relative">
+                            <input
+                                type="text"
+                                name="lastName"
+                                id="lastName"
+                                value={formData.lastName}
+                                onChange={handleChange}
+                                className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-indigo-600 placeholder-transparent pt-4 pb-1"
+                                placeholder="Apellidos"
+                                required
+                                pattern="[A-Za-z\s]+"
+                                title="Solo se permiten letras y espacios"
+                            />
+                            <label htmlFor="lastName" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Apellidos</label>
+                        </div>
                     </div>
-                    <div className="mb-4">
-                        <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Correo Electrónico</label>
+                    <div className="relative">
                         <input
-                            id="email"
-                            name="email"
-                            type="email"
-                            value={formData.email}
+                            type="date"
+                            name="birthDate"
+                            id="birthDate"
+                            value={formData.birthDate}
                             onChange={handleChange}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
+                            className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-indigo-600 placeholder-transparent pt-4 pb-1"
                             required
+                            min="1900-01-01"
+                            max={new Date().toISOString().split("T")[0]}
                         />
+                        <label htmlFor="birthDate" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Fecha de Nacimiento</label>
                     </div>
-                    <div className="mb-4">
-                        <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Teléfono</label>
-                        <input
-                            id="phone"
-                            name="phone"
-                            type="tel"
-                            value={formData.phone}
-                            onChange={handleChange}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
-                            required
-                        />
-                    </div>
-                    <div className="mb-4">
-                        <label htmlFor="country" className="block text-sm font-medium text-gray-700 dark:text-gray-300">País</label>
+                    <div className="relative">
                         <select
-                            id="country"
                             name="country"
+                            id="country"
                             value={formData.country}
                             onChange={handleChange}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
+                            className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-indigo-600 bg-transparent pt-4 pb-1"
                             required
                         >
-                            <option value="">Selecciona tu país</option>
-                            <option value="United States">Estados Unidos</option>
-                            <option value="Canada">Canadá</option>
-                            <option value="Mexico">México</option>
-                            <option value="Bolivia">Bolivia</option>
-                            <option value="Argentina">Argentina</option>
-                            <option value="Chile">Chile</option>
+                            <option value=""disabled>Elija una opción</option>
+                            <option value="Bolivia">Bolivia +591</option>
+                            <option value="Argentina">Argentina +54</option>
+                            <option value="Chile">Chile +56</option>
+                            <option value="Brasil">Brasil +55</option>
+                            <option value="Colombia">Colombia +57</option>
+                            <option value="Peru">Perú +51</option>
+                            <option value="Mexico">México +52</option>
+                            <option value="United States">Estados Unidos +1</option>
                         </select>
+                        <label htmlFor="country" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">País</label>
                     </div>
-                    <div className="mb-4">
-                        <label htmlFor="comments" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Comentarios</label>
-                        <textarea
-                            id="comments"
-                            name="comments"
-                            rows={3}
-                            value={formData.comments}
+                    <div className="relative">
+                        <select
+                            name="academicLevel"
+                            id="academicLevel"
+                            value={formData.academicLevel}
                             onChange={handleChange}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
-                            placeholder="Opcional"
-                        />
+                            className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-indigo-600 bg-transparent pt-4 pb-1"
+                            required
+                        >
+                            <option value=""disabled>Elija una opción</option>
+                            <option value="Student">Estudiante Universitario</option>
+                            <option value="Professional">Profesional</option>
+                        </select>
+                        <label htmlFor="academicLevel" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Nivel Académico</label>
                     </div>
-                    <div className="flex justify-end">
+                    {formData.academicLevel === 'Professional' && (
+                        <>
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    name="companyName"
+                                    id="companyName"
+                                    value={formData.companyName}
+                                    onChange={handleChange}
+                                    className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-indigo-600 placeholder-transparent pt-4 pb-1"
+                                    placeholder="Nombre de la Empresa"
+                                    required
+                                    pattern="[A-Za-z\s]+"
+                                    title="Solo se permiten letras y espacios"
+                                />
+                                <label htmlFor="companyName" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Nombre de la Empresa</label>
+                            </div>
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    name="profession"
+                                    id="profession"
+                                    value={formData.profession}
+                                    onChange={handleChange}
+                                    className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-indigo-600 placeholder-transparent pt-4 pb-1"
+                                    placeholder="Profesión"
+                                    required
+                                    pattern="[A-Za-z\s]+"
+                                    title="Solo se permiten letras y espacios"
+                                />
+                                <label htmlFor="profession" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Profesión</label>
+                            </div>
+                        </>
+                    )}
+                    {formData.academicLevel === 'Student' && (
+                        <>
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    name="universityName"
+                                    id="universityName"
+                                    value={formData.universityName}
+                                    onChange={handleChange}
+                                    className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-indigo-600 placeholder-transparent pt-4 pb-1"
+                                    placeholder="Nombre de la Universidad"
+                                    required
+                                    pattern="[A-Za-z\s]+"
+                                    title="Solo se permiten letras y espacios"
+                                />
+                                <label htmlFor="universityName" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Nombre de la Universidad</label>
+                            </div>
+                            <div className="relative">
+                                <input
+                                    type="file"
+                                    name="studentId"
+                                    id="studentId"
+                                    accept="image/*"
+                                    onChange={handleChange}
+                                    className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-indigo-600 pt-4 pb-1"
+                                    required
+                                />
+                                <label htmlFor="studentId" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Subir Carnet de Estudiante</label>
+                            </div>
+                        </>
+                    )}
+                    <div className="relative">
+                        <input
+                            type="email"
+                            name="email"
+                            id="email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-indigo-600 placeholder-transparent pt-4 pb-1"
+                            placeholder="Correo Electrónico"
+                            required
+                            pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                            title="Ingrese un correo electrónico válido"
+                        />
+                        <label htmlFor="email" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Correo Electrónico</label>
+                    </div>
+                    <div className="relative">
+                        <input
+                            type="tel"
+                            name="phone"
+                            id="phone"
+                            value={formData.phone}
+                            onChange={handleChange}
+                            className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-indigo-600 placeholder-transparent pt-4 pb-1"
+                            placeholder="Nº de Teléfono/Celular"
+                            required
+                            pattern="\d{8,10}"
+                            title="Debe tener 8 o 10 dígitos"
+                        />
+                        <label htmlFor="phone" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Nº de Teléfono/Celular</label>
+                    </div>
+                    <div className="flex justify-end pt-6">
                         <button
                             type="submit"
-                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                            className="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition-all duration-300 ease-in-out transform hover:scale-105"
                         >
                             Enviar
                         </button>
                     </div>
                 </form>
+                {message && (
+                    <div className="mt-8 bg-blue-100 text-blue-800 p-4 rounded-lg">
+                        {message}
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -6,6 +6,8 @@ import PersonalDataForm from './components/PersonalDataForm';
 import PaymentQR from './components/PaymentQR';
 import EntryQR from './components/EntryQR';
 import Footer from './components/Footer';
+import Login from './components/admin/Login';
+import AdminDashboard from './components/admin/admin';
 
 function App() {
   return (
@@ -18,6 +20,8 @@ function App() {
             <Route path="/personal-data" element={<PersonalDataForm />} />
             <Route path="/payment" element={<PaymentQR />} />
             <Route path="/entry" element={<EntryQR />} />
+            <Route path='/login' element= {<Login />}/>
+            <Route path='/admin' element= {<AdminDashboard />} />
           </Routes>
         </div>
         <Footer />

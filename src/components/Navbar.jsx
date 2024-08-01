@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { FaUserCircle } from 'react-icons/fa';
 
 function Navbar() {
     return (
@@ -12,6 +13,9 @@ function Navbar() {
                     <Link to="/personal-data" className="text-gray-800 hover:text-gray-600">Datos Personales</Link>
                     <Link to="/payment" className="text-gray-800 hover:text-gray-600">Pago</Link>
                     <Link to="/entry" className="text-gray-800 hover:text-gray-600">Entrada</Link>
+                    <Link to="/login" className="text-gray-800 hover:text-gray-600">
+                        <FaUserCircle className="text-2xl" /> {/* Ícono de usuario */}
+                    </Link>
                 </div>
             </div>
         </nav>
