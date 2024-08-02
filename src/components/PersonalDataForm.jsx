@@ -1,3 +1,4 @@
+// src/components/PersonalDataForm.jsx
 import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { saveDataToFirestore, listenToFirestoreUpdates } from '../Firebase/PersonalData/BkForm';
@@ -17,12 +18,28 @@ function PersonalDataForm() {
         phone: '',
         studentId: null
     });
-    const [tickets, setTickets] = useState([]);
     const [message, setMessage] = useState('');
+    const [token, setToken] = useState(localStorage.getItem('userToken') || uuidv4());
 
     useEffect(() => {
-        listenToFirestoreUpdates(setTickets);
-    }, []);
+        if (!localStorage.getItem('userToken')) {
+            localStorage.setItem('userToken', token);
+        }
+        const interval = setInterval(() => {
+            checkTicketStatus();
+        }, 5000); // Verifica el estado del ticket cada 5 segundos
+
+        return () => clearInterval(interval);
+    }, [token]);
+
+    const checkTicketStatus = () => {
+        listenToFirestoreUpdates((tickets) => {
+            const userTicket = tickets.find(ticket => ticket.token === token);
+            if (userTicket && userTicket.status === 'approved') {
+                window.location.href = '/payment';
+            }
+        });
+    };
 
     const handleChange = (e) => {
         const { name, value, files } = e.target;
@@ -41,8 +58,7 @@ function PersonalDataForm() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const uniqueToken = uuidv4();
-        const formDataWithToken = { ...formData, token: uniqueToken };
+        const formDataWithToken = { ...formData, token };
 
         const result = await saveDataToFirestore(formDataWithToken);
         if (result.success) {
@@ -116,7 +132,7 @@ function PersonalDataForm() {
                             className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-indigo-600 bg-transparent pt-4 pb-1"
                             required
                         >
-                            <option value=""disabled>Elija una opción</option>
+                            <option value="" disabled>Elija una opción</option>
                             <option value="Bolivia">Bolivia +591</option>
                             <option value="Argentina">Argentina +54</option>
                             <option value="Chile">Chile +56</option>
@@ -137,7 +153,7 @@ function PersonalDataForm() {
                             className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-indigo-600 bg-transparent pt-4 pb-1"
                             required
                         >
-                            <option value=""disabled>Elija una opción</option>
+                            <option value="" disabled>Elija una opción</option>
                             <option value="Student">Estudiante Universitario</option>
                             <option value="Professional">Profesional</option>
                         </select>

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import { FaUser, FaLock, FaSignInAlt } from 'react-icons/fa';
+import { useAuth } from '../../Firebase/context/AuthContext';
 import 'tailwindcss/tailwind.css';
 
 function Login() {
@@ -9,6 +10,13 @@ function Login() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const navigate = useNavigate();
+    const { currentUser } = useAuth();
+
+    useEffect(() => {
+        if (currentUser) {
+            navigate('/admin');
+        }
+    }, [currentUser, navigate]);
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -26,9 +34,9 @@ function Login() {
             <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-8 space-y-6">
                 <div className="text-center">
                     <h2 className="text-3xl font-bold text-gray-900">
-                        Iniciar Sesion Admin
+                        Iniciar Sesión Admin
                     </h2>
-                    <p className="mt-2 text-sm text-gray-600">Inicia Sesion con tu cuenta Admin</p>
+                    <p className="mt-2 text-sm text-gray-600">Inicia sesión con tu cuenta Admin</p>
                 </div>
                 {error && (
                     <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">

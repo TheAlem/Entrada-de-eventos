@@ -1,3 +1,4 @@
+// src/components/admin/AdminDashboard.jsx
 import React, { useState, useEffect } from 'react';
 import { listenToFirestoreUpdates, updateTicketStatus } from '../../Firebase/PersonalData/BkForm';
 import 'tailwindcss/tailwind.css';
@@ -5,30 +6,34 @@ import { FiEye } from 'react-icons/fi';
 
 function AdminDashboard() {
     const [tickets, setTickets] = useState([]);
-    const [currentUser, setCurrentUser] = useState(null);
+    const [currentUserTicket, setCurrentUserTicket] = useState(null);
 
     useEffect(() => {
         listenToFirestoreUpdates(setTickets);
-        const savedUser = localStorage.getItem('currentUser');
-        if (savedUser) {
-            setCurrentUser(JSON.parse(savedUser));
-        }
     }, []);
 
-    const handleApprove = async (ticketId, isStudent) => {
-        await updateTicketStatus(ticketId, 'approved');
-        if (currentUser && currentUser.id === ticketId) {
-            setCurrentUser({ ...currentUser, status: 'approved' });
+    useEffect(() => {
+        const userToken = localStorage.getItem('userToken');
+        if (userToken) {
+            const userTicket = tickets.find(ticket => ticket.token === userToken);
+            if (userTicket) {
+                setCurrentUserTicket(userTicket);
+            }
         }
-        alert('Registro aprobado');
+    }, [tickets]);
+
+    const handleApprove = async (ticketId) => {
+        await updateTicketStatus(ticketId, 'approved');
+        setTickets(prevTickets => prevTickets.map(ticket => 
+            ticket.id === ticketId ? { ...ticket, status: 'approved' } : ticket
+        ));
     };
 
     const handleReject = async (ticketId) => {
         await updateTicketStatus(ticketId, 'rejected');
-        if (currentUser && currentUser.id === ticketId) {
-            setCurrentUser({ ...currentUser, status: 'rejected' });
-        }
-        alert('Registro rechazado');
+        setTickets(prevTickets => prevTickets.map(ticket => 
+            ticket.id === ticketId ? { ...ticket, status: 'rejected' } : ticket
+        ));
     };
 
     const studentTickets = tickets.filter(ticket => ticket.academicLevel === 'Student');
@@ -65,7 +70,7 @@ function AdminDashboard() {
                                 </div>
                                 <div className="flex space-x-4 mt-4">
                                     <button
-                                        onClick={() => handleApprove(ticket.id, true)}
+                                        onClick={() => handleApprove(ticket.id)}
                                         className="px-4 py-2 bg-green-600 text-white rounded-lg"
                                     >
                                         Aprobar
@@ -101,17 +106,17 @@ function AdminDashboard() {
                         ))}
                     </ul>
                 </div>
-                {currentUser && (
+                {currentUserTicket && (
                     <div className="mt-8">
                         <h3 className="text-2xl font-bold mb-4">Mis Datos</h3>
                         <div className="mb-2 bg-white p-4 rounded-lg shadow">
-                            <p><strong>Nombre:</strong> {currentUser.firstName} {currentUser.lastName}</p>
-                            <p><strong>Correo Electrónico:</strong> {currentUser.email}</p>
-                            <p><strong>Nivel Académico:</strong> {currentUser.academicLevel}</p>
-                            {currentUser.academicLevel === 'Student' && <p><strong>Universidad:</strong> {currentUser.universityName}</p>}
-                            {currentUser.academicLevel === 'Professional' && <p><strong>Profesión:</strong> {currentUser.profession}</p>}
-                            <p><strong>Estado del Pago:</strong> {currentUser.paymentStatus ? 'Pagado' : 'No Pagado'}</p>
-                            <p><strong>Estado:</strong> {currentUser.status === 'approved' ? 'Aprobado' : currentUser.status === 'rejected' ? 'Rechazado' : 'Pendiente'}</p>
+                            <p><strong>Nombre:</strong> {currentUserTicket.firstName} {currentUserTicket.lastName}</p>
+                            <p><strong>Correo Electrónico:</strong> {currentUserTicket.email}</p>
+                            <p><strong>Nivel Académico:</strong> {currentUserTicket.academicLevel}</p>
+                            {currentUserTicket.academicLevel === 'Student' && <p><strong>Universidad:</strong> {currentUserTicket.universityName}</p>}
+                            {currentUserTicket.academicLevel === 'Professional' && <p><strong>Profesión:</strong> {currentUserTicket.profession}</p>}
+                            <p><strong>Estado del Pago:</strong> {currentUserTicket.paymentStatus ? 'Pagado' : 'No Pagado'}</p>
+                            <p><strong>Estado:</strong> {currentUserTicket.status === 'approved' ? 'Aprobado' : currentUserTicket.status === 'rejected' ? 'Rechazado' : 'Pendiente'}</p>
                         </div>
                     </div>
                 )}
