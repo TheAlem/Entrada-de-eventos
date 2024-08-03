@@ -21,13 +21,11 @@ function Home() {
                     image={Step2}
                     step="Paso 2"
                     description="Paga la entrada mediante QR"
-                    link="/payment"
                 />
                 <StepCard 
                     image={Step3}
                     step="Paso 3"
                     description="Obtienes tu entrada!!"
-                    link="/entry"
                 />
             </div>
         </div>

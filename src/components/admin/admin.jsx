@@ -72,12 +72,14 @@ function AdminDashboard() {
                                     <button
                                         onClick={() => handleApprove(ticket.id)}
                                         className="px-4 py-2 bg-green-600 text-white rounded-lg"
+                                        disabled={ticket.status === 'approved' || ticket.status === 'rejected'}
                                     >
                                         Aprobar
                                     </button>
                                     <button
                                         onClick={() => handleReject(ticket.id)}
                                         className="px-4 py-2 bg-red-600 text-white rounded-lg"
+                                        disabled={ticket.status === 'approved' || ticket.status === 'rejected'}
                                     >
                                         Rechazar
                                     </button>
@@ -98,8 +100,8 @@ function AdminDashboard() {
                                 <p><strong>Nombre:</strong> {ticket.firstName} {ticket.lastName}</p>
                                 <p><strong>Correo Electrónico:</strong> {ticket.email}</p>
                                 <p><strong>Profesión:</strong> {ticket.profession}</p>
-                                <p><strong>Estado del Pago:</strong> {ticket.paymentStatus ? 'Pagado' : 'No Pagado'}</p>
                                 <div className="mt-4">
+                                    <p><strong>Estado del Pago:</strong> {ticket.paymentStatus ? 'Pagado' : 'No Pagado'}</p>
                                     <p><strong>Estado:</strong> {ticket.status === 'approved' ? 'Aprobado' : ticket.status === 'rejected' ? 'Rechazado' : 'Pendiente'}</p>
                                 </div>
                             </li>
