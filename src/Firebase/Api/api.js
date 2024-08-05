@@ -5,7 +5,7 @@ const GENERATE_QR_URL = '/api/QRSimple.API/api/v1/main/getQRWithImageAsync';
 const GET_QR_STATUS_URL = '/api/QRSimple.API/api/v1/main/getQRStatusAsync';
 
 const accountId = 'K103DKpylBrjkZzpkWtpew==';
-const authorizationId = 'CcVmKbqor00puc/sx/mwugL6sfEhhXWnfjENnWz7aa0=';
+const authorizationId = 'RevistaBolivia123*';
 
 let authToken = null;
 let tokenExpiration = null;

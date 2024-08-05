@@ -4,6 +4,7 @@ import { getAnalytics } from "firebase/analytics";
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getAuth } from "firebase/auth";
+import { getFunctions } from "firebase/functions";
 
 //Admin
 //EnergiaBolivia
@@ -29,5 +30,6 @@ const analytics = getAnalytics(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 const auth = getAuth(app);
+const functions = getFunctions(app);
 
-export { db, storage, auth };
+export { db, storage, auth, functions };
