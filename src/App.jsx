@@ -12,6 +12,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './Firebase/context/AuthContext';
 
 function App() {
+  const exampleToken = "1212408f-d224-452f-9fce-efefc2c3e572"; // Reemplaza con el token del documento real
+
   return (
     <AuthProvider>
       <Router>
@@ -22,7 +24,7 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/personal-data" element={<PersonalDataForm />} />
               <Route path="/payment" element={<PaymentQR />} />
-              <Route path="/entry" element={<EntryQR />} />
+              <Route path="/entry" element={<EntryQR token={exampleToken} />} />
               <Route path="/login" element={<Login />} />
               <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
             </Routes>
