@@ -8,10 +8,7 @@ export default defineConfig({
       '/api': {
         target: 'http://test.bnb.com.bo',
         changeOrigin: true,
-        rewrite: (path) => {
-          console.log(`Rewriting path: ${path}`);
-          return path.replace(/^\/api/, '');
-        },
+        rewrite: (path) => path.replace(/^\/api/, ''),
       },
     },
   },
