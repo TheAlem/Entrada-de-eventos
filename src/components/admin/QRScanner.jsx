@@ -105,12 +105,12 @@ const QRScanner = () => {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center p-4 mt-16 bg-gray-100 min-h-screen">
+        <div className="flex flex-col items-center justify-center p-4 mt-16 ">
             <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-                <h2 className="text-2xl font-bold mb-4 text-center text-blue-600">Escáner QR</h2>
+                <h2 className="text-2xl font-bold mb-4 text-center text-green-600">Escáner QR</h2>
                 <div className="flex justify-center space-x-4 mb-4">
                     <button
-                        className={`px-4 py-2 rounded-full font-semibold text-white ${isScanning ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'}`}
+                        className={`px-4 py-2 rounded-full font-semibold text-white ${isScanning ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'}`}
                         onClick={startScanner}
                         disabled={isScanning}
                     >
@@ -126,7 +126,7 @@ const QRScanner = () => {
                 </div>
                 <div ref={qrRef} id="qr-reader" className="w-full h-96 bg-gray-200 rounded-lg overflow-hidden"></div>
                 <p className="text-sm mt-4 text-center text-gray-600">
-                    Resultado del escaneo: <pre className="font-semibold whitespace-pre-wrap">{qrCodeResult || 'Ninguno'}</pre>
+                    Resultado del escaneo: <pre className="font-semibold whitespace-pre-wrap break-words">{qrCodeResult || 'Ninguno'}</pre>
                 </p>
             </div>
             <Modal
@@ -136,10 +136,10 @@ const QRScanner = () => {
                 className="bg-white rounded-lg p-6 shadow-xl max-w-sm mx-auto mt-20"
                 overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-start"
             >
-                <h2 className="text-xl font-bold mb-4 text-blue-600">Resultado del Escaneo</h2>
-                <div className="text-gray-700 mb-4 whitespace-pre-wrap">{modalContent}</div>
+                <h2 className="text-xl font-bold mb-4 text-green-600">Resultado del Escaneo</h2>
+                <div className="text-gray-700 mb-4 whitespace-pre-wrap break-words">{modalContent}</div>
                 <button 
-                    className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition duration-300"
+                    className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-full transition duration-300"
                     onClick={() => setModalIsOpen(false)}
                 >
                     Cerrar

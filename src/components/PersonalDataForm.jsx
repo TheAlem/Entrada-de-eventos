@@ -84,7 +84,7 @@ const PersonalDataForm = () => {
                 id="firstName"
                 value={formData.firstName}
                 onChange={handleChange}
-                className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-blue-600 placeholder-transparent pt-4 pb-1"
+                className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 placeholder-transparent pt-4 pb-1"
                 placeholder="Nombre"
                 required
                 pattern="[A-Za-z\s]+"
@@ -99,7 +99,7 @@ const PersonalDataForm = () => {
                 id="lastName"
                 value={formData.lastName}
                 onChange={handleChange}
-                className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-blue-600 placeholder-transparent pt-4 pb-1"
+                className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 placeholder-transparent pt-4 pb-1"
                 placeholder="Apellidos"
                 required
                 pattern="[A-Za-z\s]+"
@@ -115,7 +115,7 @@ const PersonalDataForm = () => {
               id="birthDate"
               value={formData.birthDate}
               onChange={handleChange}
-              className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-blue-600 placeholder-transparent pt-4 pb-1"
+              className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 placeholder-transparent pt-4 pb-1"
               required
               min="1900-01-01"
               max={new Date().toISOString().split("T")[0]}
@@ -128,7 +128,7 @@ const PersonalDataForm = () => {
               id="country"
               value={formData.country}
               onChange={handleChange}
-              className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-blue-600 bg-transparent pt-4 pb-1"
+              className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 bg-transparent pt-4 pb-1"
               required
             >
               <option value="" disabled>Elija una opción</option>
@@ -149,7 +149,7 @@ const PersonalDataForm = () => {
               id="academicLevel"
               value={formData.academicLevel}
               onChange={handleChange}
-              className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-blue-600 bg-transparent pt-4 pb-1"
+              className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 bg-transparent pt-4 pb-1"
               required
             >
               <option value="" disabled>Elija una opción</option>
@@ -167,7 +167,7 @@ const PersonalDataForm = () => {
                   id="companyName"
                   value={formData.companyName}
                   onChange={handleChange}
-                  className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-blue-600 placeholder-transparent pt-4 pb-1"
+                  className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 placeholder-transparent pt-4 pb-1"
                   placeholder="Nombre de la Empresa"
                   required
                   pattern="[A-Za-z\s]+"
@@ -182,7 +182,7 @@ const PersonalDataForm = () => {
                   id="profession"
                   value={formData.profession}
                   onChange={handleChange}
-                  className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-blue-600 placeholder-transparent pt-4 pb-1"
+                  className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 placeholder-transparent pt-4 pb-1"
                   placeholder="Profesión"
                   required
                   pattern="[A-Za-z\s]+"
@@ -201,7 +201,7 @@ const PersonalDataForm = () => {
                   id="universityName"
                   value={formData.universityName}
                   onChange={handleChange}
-                  className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-blue-600 placeholder-transparent pt-4 pb-1"
+                  className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 placeholder-transparent pt-4 pb-1"
                   placeholder="Nombre de la Universidad"
                   required
                   pattern="[A-Za-z\s]+"
@@ -216,7 +216,7 @@ const PersonalDataForm = () => {
                   id="studentId"
                   accept="image/*"
                   onChange={handleChange}
-                  className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-blue-600 pt-4 pb-1"
+                  className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 pt-4 pb-1"
                   required
                 />
                 <label htmlFor="studentId" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Subir Carnet de Estudiante</label>
@@ -230,7 +230,7 @@ const PersonalDataForm = () => {
               id="email"
               value={formData.email}
               onChange={handleChange}
-              className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-blue-600 placeholder-transparent pt-4 pb-1"
+              className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 placeholder-transparent pt-4 pb-1"
               placeholder="Correo Electrónico"
               required
               pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
@@ -245,7 +245,7 @@ const PersonalDataForm = () => {
               id="phone"
               value={formData.phone}
               onChange={handleChange}
-              className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-blue-600 placeholder-transparent pt-4 pb-1"
+              className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 placeholder-transparent pt-4 pb-1"
               placeholder="Nº de Teléfono/Celular"
               required
               pattern="\d{8,10}"
@@ -256,14 +256,14 @@ const PersonalDataForm = () => {
           <div className="flex justify-end pt-6">
             <button
               type="submit"
-              className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition-all duration-300 ease-in-out transform hover:scale-105"
+              className="px-6 py-3 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition-all duration-300 ease-in-out transform hover:scale-105"
             >
               Enviar
             </button>
           </div>
         </form>
         {message && (
-          <div className="mt-8 bg-blue-100 text-blue-800 p-4 rounded-lg">
+          <div className="mt-8 bg-green-100 text-green-800 p-4 rounded-lg">
             {message}
           </div>
         )}
