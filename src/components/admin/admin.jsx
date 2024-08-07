@@ -3,8 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { listenToFirestoreUpdates, updateTicketStatus } from '../../Firebase/PersonalData/BkForm';
 import 'tailwindcss/tailwind.css';
 import { FiEye } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
+
 
 function AdminDashboard() {
+    const navigate = useNavigate();
     const [tickets, setTickets] = useState([]);
     const [currentUserTicket, setCurrentUserTicket] = useState(null);
 
@@ -21,6 +24,10 @@ function AdminDashboard() {
             }
         }
     }, [tickets]);
+
+    const goToQRScanner = () => {
+        navigate('/EscaneoQR');
+    };
 
     const handleApprove = async (ticketId) => {
         await updateTicketStatus(ticketId, 'approved');
@@ -42,6 +49,11 @@ function AdminDashboard() {
     return (
         <div className="min-h-screen flex flex-col items-center bg-gray-100 pt-16">
             <div className="w-full max-w-4xl space-y-8 p-4">
+            <button
+                onClick={goToQRScanner}
+                className="mb-4 px-4 py-2 bg-blue-600 text-white rounded-lg">
+                Escanear QR
+            </button>
                 <div>
                     <h3 className="text-2xl font-bold mb-4">Registros de Estudiantes</h3>
                     <ul>

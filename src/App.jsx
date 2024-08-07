@@ -7,6 +7,7 @@ import PaymentQR from './components/PaymentQR';
 import EntryQR from './components/EntryQR';
 import Footer from './components/Footer';
 import Login from './components/admin/Login';
+import Escaneo from './components/admin/QRScanner'
 import AdminDashboard from './components/admin/admin';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './Firebase/context/AuthContext';
@@ -26,6 +27,7 @@ function App() {
               <Route path="/payment" element={<PaymentQR />} />
               <Route path="/entry" element={<EntryQR token={exampleToken} />} />
               <Route path="/login" element={<Login />} />
+              <Route path='/EscaneoQR' element={<ProtectedRoute><Escaneo/></ProtectedRoute>}/>
               <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
             </Routes>
           </div>

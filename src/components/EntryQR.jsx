@@ -89,12 +89,13 @@ const EntryQR = ({ token }) => {
                   universityName: entry.universityName || "",
                   profession: entry.profession || "",
                   companyName: entry.companyName || "",
-                  token: entry.token || "",
+                  token: entry.token,
                   paymentStatus: entry.paymentStatus
                 })}
-                size={150}
+                size={256} // Aumenta el tamaño para una mayor resolución
                 level="H"
                 includeMargin={true}
+                renderAs="svg" // Usa SVG para una mejor claridad
               />
             </div>
           </div>
