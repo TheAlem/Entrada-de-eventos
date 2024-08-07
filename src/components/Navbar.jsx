@@ -35,7 +35,7 @@ function Navbar() {
                     <Link to="/payment" className="block text-gray-800 hover:text-green-600 transition duration-300 ease-in-out transform hover:-translate-y-1 px-4 py-2" onClick={toggleMobileMenu}>Pago</Link>
                     <Link to="/entry" className="block text-gray-800 hover:text-green-600 transition duration-300 ease-in-out transform hover:-translate-y-1 px-4 py-2" onClick={toggleMobileMenu}>Entrada</Link>
                     <Link to="/login" className="block text-gray-800 hover:text-green-600 transition duration-300 ease-in-out transform hover:-translate-y-1 px-4 py-2 flex items-center" onClick={toggleMobileMenu}>
-                        <FaUserCircle className="text-2xl mr-2" /> Login
+                        <FaUserCircle className="text-2xl mr-2" /> 
                     </Link>
                 </div>
             )}
