@@ -10,21 +10,32 @@ import repsol from '../assets/Sponsors/repsol.png';
 import TotalEnergies from '../assets/Sponsors/totalenergies.svg';
 import Toyota from '../assets/Sponsors/Toyota.svg';
 import YPFB from '../assets/Sponsors/YPFB_Logo.svg';
+import backgroundImage from '../assets/images/PlantaBK.jpg'; // La imagen de fondo
 
 function Home() {
     return (
-        <div className="bg-gradient-to-b min-h-screen">
-            <div className="container mx-auto px-4 py-12">
-                {/* Sección de Bienvenida */}
-                <header className="text-center mb-16">
-                    <h1 className="text-4xl md:text-6xl font-extrabold text-green-800 mb-4">
+        <div>
+            {/* Sección con la imagen de fondo */}
+            <div className="relative  bg-cover bg-center" style={{ backgroundImage: `url(${backgroundImage})`, marginTop: '-44px' }}>
+                <div className="absolute inset-0 bg-black opacity-50"></div> {/* Overlay */}
+                <div className="container mx-auto px-4 py-12 relative z-10 text-white text-center">
+                    <h1 className="text-4xl md:text-6xl font-extrabold mb-4">
                         Evento de Blockchain
                     </h1>
-                    <p className="text-xl md:text-2xl text-gray-600 max-w-2xl mx-auto">
+                    <p className="text-xl md:text-2xl max-w-2xl mx-auto">
                         Explora el futuro de la tecnología en nuestro evento exclusivo. Sigue los pasos para asegurar tu entrada.
                     </p>
-                </header>
-                
+                    {/* Logos con línea en el medio */}
+                    <div className="flex justify-center items-center mt-8">
+                        <img src={EnergiaBolivia} alt="Energia Bolivia" className="h-16 md:h-20 mr-4" />
+                        <div className="h-px w-16 bg-white mx-4"></div>
+                        <img src={luka} alt="Otro logo" className="h-16 md:h-20 ml-4" />
+                    </div>
+                </div>
+            </div>
+
+            {/* Sección de contenido principal */}
+            <div className="container mx-auto px-4 py-12">
                 {/* Pasos para la Compra de Entradas */}
                 <section className="mb-24">
                     <h2 className="text-3xl md:text-4xl font-bold text-center text-green-700 mb-12">Proceso de Compra</h2>

@@ -13,7 +13,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './Firebase/context/AuthContext';
 
 function App() {
-  const exampleToken = "1212408f-d224-452f-9fce-efefc2c3e572"; // Reemplaza con el token del documento real
+  const exampleToken = "83cfd42d-9558-413d-8061-9067a4be145b"; // Reemplaza con el token del documento real
 
   return (
     <AuthProvider>

@@ -1,10 +1,7 @@
 const functions = require("firebase-functions");
-const admin = require("firebase-admin");
 const nodemailer = require("nodemailer");
 const PDFDocument = require("pdfkit");
 const QRCode = require("qrcode");
-
-admin.initializeApp();
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -19,7 +16,7 @@ const transporter = nodemailer.createTransport({
  * @param {Object} snap - The snapshot of the newly created document.
  * @param {Object} context - The event context.
  */
-module.exports = functions.firestore.document("clientes/{clientId}")
+exports.sendEmail = functions.firestore.document("clientes/{clientId}")
     .onCreate(async (snap, context) => {
       const data = snap.data();
       const doc = new PDFDocument();
