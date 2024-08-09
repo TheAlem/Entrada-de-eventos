@@ -10,34 +10,29 @@ import repsol from '../assets/Sponsors/repsol.png';
 import TotalEnergies from '../assets/Sponsors/totalenergies.svg';
 import Toyota from '../assets/Sponsors/Toyota.svg';
 import YPFB from '../assets/Sponsors/YPFB_Logo.svg';
-import backgroundImage from '../assets/images/PlantaBK.jpg'; // La imagen de fondo
+import backgroundImage from '../assets/images/PlantaBK.jpg';
 
 function Home() {
     return (
         <div>
-            {/* Sección principal con diseño innovador */}
-            <div className="relative h-screen bg-cover bg-center" style={{ backgroundImage: `url(${backgroundImage})`, marginTop: '-44px' }}>
+            {/* Sección principal con diseño mejorado */}
+            <div className="relative h-[60vh] bg-cover bg-center rounded-b-3xl overflow-hidden" style={{ backgroundImage: `url(${backgroundImage})`, marginTop: '-44px' }}>
                 <div className="absolute inset-0 bg-gradient-to-r from-black via-transparent to-black opacity-70"></div>
                 <div className="absolute inset-0 flex flex-col justify-center items-center text-white">
                     <div className="glass-container p-8 rounded-3xl text-center max-w-4xl mx-4">
-                        <h1 className="text-5xl md:text-7xl font-extrabold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-red-700 to-red-500">
-                        BOLIVIA BLOCKCHAIN SUMMIT
+                        <h1 className="text-4xl md:text-6xl font-extrabold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-400 drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">
+                            BOLIVIA BLOCKCHAIN SUMMIT
                         </h1>
-                        <p className="text-xl md:text-2xl mb-8">
+                        <p className="text-lg md:text-xl mb-6">
                             Explora el futuro de la tecnología en nuestro evento exclusivo.
                             Sigue los pasos para asegurar tu entrada.
                         </p>
                         <div className="flex justify-center items-center space-x-8">
-                            <img src={EnergiaBolivia} alt="Energia Bolivia" className="h-16 md:h-20 drop-shadow-glow" />
-                            <div className="h-16 w-px bg-white opacity-50"></div>
-                            <img src={luka} alt="Otro logo" className="h-16 md:h-20 drop-shadow-glow" />
+                            <img src={EnergiaBolivia} alt="Energia Bolivia" className="h-12 md:h-16 drop-shadow-glow" />
+                            <div className="h-12 w-px bg-white opacity-50"></div>
+                            <img src={luka} alt="Otro logo" className="h-12 md:h-16 drop-shadow-glow" />
                         </div>
                     </div>
-                </div>
-                <div className="absolute bottom-10 left-0 right-0 flex justify-center">
-                    <Link to="/personal-data" className="animate-bounce bg-red-600 text-white font-bold py-3 px-6 rounded-full hover:bg-red-700 transition duration-300">
-                        Comienza Aquí
-                    </Link>
                 </div>
             </div>
 
@@ -87,6 +82,7 @@ function Home() {
         </div>
     );
 }
+
 function StepCard({ image, step, description, link }) {
     return (
         <Link to={link} className="flex flex-col items-center w-full md:w-80 bg-white rounded-lg shadow-lg p-6 transform transition duration-300 hover:-translate-y-2 hover:shadow-xl">
