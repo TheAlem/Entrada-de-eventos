@@ -1,12 +1,8 @@
 
-const admin = require("firebase-admin");
-
-if (!admin.apps.length) {
-  admin.initializeApp();
-}
-
+const VerifyQr = require("./src/verifyQr");
 const sendEmail = require("./src/sendEmail");
-const verifyQr = require("./src/verifyQr");
+const receiveNotification = require("./src/ReceiveNotification");
 
-exports.verifyQr = verifyQr.verifyQr;
-exports.sendEmail = sendEmail.sendEmail;
+exports.VerifyQr = VerifyQr;
+exports.sendEmail = sendEmail;
+exports.receiveNotification = receiveNotification;

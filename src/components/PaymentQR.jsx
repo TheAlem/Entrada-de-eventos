@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { generateQR, getQRStatus, refreshTokenIfNeeded } from '../Firebase/Api/api';
+import { generateQR } from '../Firebase/Api/api';
 import { getFirestore, doc, setDoc } from 'firebase/firestore';
 import 'tailwindcss/tailwind.css';
 
@@ -15,14 +15,13 @@ const PaymentQR = () => {
     setLoading(true);
     setError('');
     try {
-      await refreshTokenIfNeeded();
       const paymentDetails = {
         currency: "BOB",
         gloss: "Pago Entrada Evento",
         amount: "0.01",
         singleUse: "true",
         expirationDate: "2024-09-01", 
-        additionalData: "Datos Adicionales - ${new Date().toISOString()}"
+        additionalData: `Datos Adicionales - ${new Date().toISOString()}`
       };      
       const data = await generateQR(paymentDetails);
       setQrData(data);
@@ -44,25 +43,6 @@ const PaymentQR = () => {
     } catch (err) {
       console.error('Error al guardar la información del pago:', err);
       // Considera si quieres manejar este error de alguna manera específica
-    }
-  };
-
-  const handleCheckPayment = async () => {
-    setError('');
-    setPaymentChecked(false);
-    try {
-      await refreshTokenIfNeeded();
-      const { id } = qrData;
-      const qrStatus = await getQRStatus(id);
-      if (qrStatus.statusId === 2) { // statusId 2 indica que el QR ha sido usado/pagado
-        navigate('/entry');
-      } else {
-        setError('El pago no ha sido realizado o el QR no es válido');
-        setPaymentChecked(true);
-      }
-    } catch (err) {
-      setError(`Error al verificar el estado del pago: ${err.message}`);
-      console.error('Error en handleCheckPayment:', err);
     }
   };
 
@@ -110,20 +90,9 @@ const PaymentQR = () => {
                   >
                     Descargar QR
                   </button>
-                  <button
-                    onClick={handleCheckPayment}
-                    className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition-all duration-300 ease-in-out transform hover:scale-105"
-                  >
-                    He realizado el pago
-                  </button>
                 </>
               )}
             </div>
-            {paymentChecked && (
-              <div className="mt-4 text-lg font-semibold text-red-600 text-center">
-                Verificación de pago fallida. Asegúrate de haber realizado el pago.
-              </div>
-            )}
           </>
         )}
       </div>

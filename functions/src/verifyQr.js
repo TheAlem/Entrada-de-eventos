@@ -1,28 +1,68 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 
+admin.initializeApp();
+
 exports.verifyQr = functions.https.onRequest(async (req, res) => {
+  console.log("Datos recibidos en el cuerpo de la solicitud:", req.body);
+
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.set("Access-Control-Allow-Headers", "Content-Type");
+
+  // Manejar solicitudes de preflight
+  if (req.method === "OPTIONS") {
+    res.status(204).send("");
+    return;
+  }
+
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: 1, status: 0, message: "Método no permitido" });
+  }
+
+  const { token } = req.body;
+
+  if (!token) {
+    return res.status(400).json({
+      error: 1,
+      status: 0,
+      message: "Faltan datos necesarios",
+      missing: { token: !token },
+    });
+  }
+
   try {
-    const { token } = req.body;
-    const q = admin.firestore().collection("clientes").where("token", "==", token);
-    const querySnapshot = await q.get();
+    const clientesCollection = admin.firestore().collection("clientes");
+    const querySnapshot = await clientesCollection.where("token", "==", token).get();
 
     if (querySnapshot.empty) {
-      return res.status(400).json({ valid: false, message: "QR inválido" });
+      console.log("No se encontró ningún cliente con el token:", token);
+      return res.status(404).json({ error: 1, status: 0, message: "QR inválido" });
     }
 
-    const doc = querySnapshot.docs[0];
-    const entry = doc.data();
+    const docRef = querySnapshot.docs[0].ref;
+    const entry = querySnapshot.docs[0].data();
 
     if (entry.scanned) {
-      return res.status(400).json({ valid: false, message: "QR ya escaneado" });
+      return res.status(409).json({ error: 1, status: 0, message: "QR ya escaneado" });
     }
 
-    await doc.ref.update({ scanned: true });
+    if (!entry.paymentStatus || entry.paymentStatus !== "completed") {
+      return res.status(403).json({
+        error: 1,
+        status: 0,
+        message: "Entrada no válida, pago no completado",
+      });
+    }
 
-    return res.status(200).json({ valid: true, message: "QR válido" });
+    await docRef.update({ scanned: true });
+    return res.status(200).json({
+      error: 0,
+      status: 1,
+      message: "Entrada validada, disfrute el evento",
+    });
   } catch (error) {
-    console.error("Error verificando QR:", error);
-    return res.status(500).json({ valid: false, message: "Error verificando QR" });
+    console.error(`Error al procesar el QR: ${error}`);
+    return res.status(500).json({ error: 1, status: 0, message: "Error interno del servidor" });
   }
 });

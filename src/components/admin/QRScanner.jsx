@@ -66,43 +66,66 @@ const QRScanner = () => {
     };
 
     const onScanSuccess = async (decodedText, decodedResult) => {
-        console.log(`Código encontrado = ${decodedText}`, decodedResult);
+        let qrData;
         try {
-            let qrData;
+          try {
+            qrData = JSON.parse(decodedText);
+            console.log('QR contiene un JSON válido:', qrData);
+          } catch (error) {
+            qrData = decodedText;
+            console.log('QR contiene texto plano:', qrData);
+          }
+
+          const response = await axios.post('https://us-central1-energiaboliviappandroid.cloudfunctions.net/verifyQr', { token: qrData.token }, {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          
+
+          if (response.data.valid) {
+            setQrCodeResult(JSON.stringify(qrData, null, 2));
+            setModalContent(`QR válido: ${JSON.stringify(qrData, null, 2)}`);
+          } else {
+            setQrCodeResult('QR inválido o ya escaneado');
+            setModalContent('QR inválido o ya escaneado');
+          }
+        } catch (error) {
+          console.error('Error procesando el QR:', error);
+          setQrCodeResult(decodedText);
+          setModalContent(`Error procesando el QR: ${error.message}`);
+
+          // Intenta de nuevo si hay un error de red
+          if (error.code === 'ERR_NETWORK') {
             try {
-                qrData = JSON.parse(decodedText);
-                console.log('QR contiene un JSON válido:', qrData);
-            } catch (error) {
-                qrData = decodedText;
-                console.log('QR contiene texto plano:', qrData);
-            }
-
-            let response;
-            if (typeof qrData === 'object' && qrData.token) {
-                response = await axios.post('https://tu-backend-url/verify-qr', { token: qrData.token });
-            } else {
-                response = { data: { valid: false, message: 'El QR no contiene un token válido' } };
-            }
-
-            if (response.data.valid) {
+              const response = await axios.post('https://us-central1-energiaboliviappandroid.cloudfunctions.net/verifyQr', { token: qrData.token }, {
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Access-Control-Allow-Origin': '*',
+                },
+              });
+              if (response.data.valid) {
                 setQrCodeResult(JSON.stringify(qrData, null, 2));
                 setModalContent(`QR válido: ${JSON.stringify(qrData, null, 2)}`);
-            } else {
+              } else {
                 setQrCodeResult('QR inválido o ya escaneado');
                 setModalContent('QR inválido o ya escaneado');
+              }
+            } catch (retryError) {
+              console.error('Error al volver a intentar:', retryError);
+              setQrCodeResult(decodedText);
+              setModalContent(`Error procesando el QR: ${retryError.message}`);
             }
-        } catch (error) {
-            console.error('Error procesando el QR:', error);
-            setQrCodeResult(decodedText);
-            setModalContent(`Error procesando el QR: ${error.message}`);
+          }
         }
         setModalIsOpen(true);
         stopScanner();
-    };
+      };
 
     const onScanFailure = (error) => {
         console.log(`Fallo en escaneo = ${error}`);
     };
+
 
     return (
         <div className="flex flex-col items-center justify-center p-4 mt-16 ">

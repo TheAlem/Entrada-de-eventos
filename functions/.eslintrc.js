@@ -15,7 +15,7 @@ module.exports = {
     "prefer-arrow-callback": "error",
     "quotes": ["error", "double", { "allowTemplateLiterals": true }],
     "linebreak-style": ["error", "unix"],
-    "max-len": ["error", { "code": 110 }],
+    "max-len": ["error", { "code": 120 }],
     "object-curly-spacing": ["error", "always"],
     "comma-dangle": ["error", "always-multiline"],
     "no-trailing-spaces": "error",
