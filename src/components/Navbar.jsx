@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { FaUserCircle, FaBars, FaTimes } from 'react-icons/fa';
 
 function Navbar() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
+    const location = useLocation();
+    const isHomePage = location.pathname === '/';
 
     const toggleMobileMenu = () => {
         setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -12,7 +14,7 @@ function Navbar() {
 
     const handleScroll = () => {
         const offset = window.scrollY;
-        setIsScrolled(offset > 100); // Cambia el valor según la altura de tu imagen de fondo
+        setIsScrolled(offset > 100);
     };
 
     useEffect(() => {
@@ -22,17 +24,24 @@ function Navbar() {
         };
     }, []);
 
+    const navbarClass = `fixed top-0 left-0 right-0 z-50 transition duration-300 ease-in-out 
+        bg-white bg-opacity-20 backdrop-blur-lg shadow-md rounded-b-lg ${
+        isHomePage && !isScrolled ? 'text-white' : 'text-gray-800'
+    }`;
+
+    const linkClass = "hover:text-green-600 transition duration-300 ease-in-out transform hover:-translate-y-1";
+
     return (
-        <nav className={`fixed top-0 left-0 right-0 z-50 transition duration-300 ease-in-out bg-transparent backdrop-blur-lg ${isScrolled ? 'text-black' : 'text-white'}`}>
+        <nav className={navbarClass}>
             <div className="container mx-auto px-4 py-4 flex justify-between items-center">
                 <div className="text-2xl font-extrabold">
-                    <Link to="/" className="hover:text-green-600 transition duration-300">Evento de Blockchain</Link>
+                    <Link to="/" className={linkClass}>Evento de Blockchain</Link>
                 </div>
                 <div className="hidden md:flex space-x-6">
-                    <Link to="/personal-data" className="hover:text-green-600 transition duration-300 ease-in-out transform hover:-translate-y-1">Datos Personales</Link>
-                    <Link to="/payment" className="hover:text-green-600 transition duration-300 ease-in-out transform hover:-translate-y-1">Pago</Link>
-                    <Link to="/entry" className="hover:text-green-600 transition duration-300 ease-in-out transform hover:-translate-y-1">Entrada</Link>
-                    <Link to="/login" className="flex items-center hover:text-green-600 transition duration-300 ease-in-out transform hover:-translate-y-1">
+                    <Link to="/personal-data" className={linkClass}>Datos Personales</Link>
+                    <Link to="/payment" className={linkClass}>Pago</Link>
+                    <Link to="/entry" className={linkClass}>Entrada</Link>
+                    <Link to="/login" className={`${linkClass} flex items-center`}>
                         <FaUserCircle className="text-2xl" />
                     </Link>
                 </div>
@@ -44,10 +53,10 @@ function Navbar() {
             </div>
             {isMobileMenuOpen && (
                 <div className="md:hidden bg-white bg-opacity-80 backdrop-blur-lg shadow-lg rounded-lg mt-2 animate-slide-down">
-                    <Link to="/personal-data" className="block hover:text-green-600 transition duration-300 ease-in-out transform hover:-translate-y-1 px-4 py-2" onClick={toggleMobileMenu}>Datos Personales</Link>
-                    <Link to="/payment" className="block hover:text-green-600 transition duration-300 ease-in-out transform hover:-translate-y-1 px-4 py-2" onClick={toggleMobileMenu}>Pago</Link>
-                    <Link to="/entry" className="block hover:text-green-600 transition duration-300 ease-in-out transform hover:-translate-y-1 px-4 py-2" onClick={toggleMobileMenu}>Entrada</Link>
-                    <Link to="/login" className="block hover:text-green-600 transition duration-300 ease-in-out transform hover:-translate-y-1 px-4 py-2 flex items-center" onClick={toggleMobileMenu}>
+                    <Link to="/personal-data" className={`block ${linkClass} px-4 py-2`} onClick={toggleMobileMenu}>Datos Personales</Link>
+                    <Link to="/payment" className={`block ${linkClass} px-4 py-2`} onClick={toggleMobileMenu}>Pago</Link>
+                    <Link to="/entry" className={`block ${linkClass} px-4 py-2`} onClick={toggleMobileMenu}>Entrada</Link>
+                    <Link to="/login" className={`block ${linkClass} px-4 py-2 flex items-center`} onClick={toggleMobileMenu}>
                         <FaUserCircle className="text-2xl mr-2" /> 
                     </Link>
                 </div>

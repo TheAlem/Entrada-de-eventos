@@ -15,26 +15,33 @@ import backgroundImage from '../assets/images/PlantaBK.jpg'; // La imagen de fon
 function Home() {
     return (
         <div>
-            {/* Sección con la imagen de fondo */}
-            <div className="relative  bg-cover bg-center" style={{ backgroundImage: `url(${backgroundImage})`, marginTop: '-44px' }}>
-                <div className="absolute inset-0 bg-black opacity-50"></div> {/* Overlay */}
-                <div className="container mx-auto px-4 py-12 relative z-10 text-white text-center">
-                    <h1 className="text-4xl md:text-6xl font-extrabold mb-4">
-                        Evento de Blockchain
-                    </h1>
-                    <p className="text-xl md:text-2xl max-w-2xl mx-auto">
-                        Explora el futuro de la tecnología en nuestro evento exclusivo. Sigue los pasos para asegurar tu entrada.
-                    </p>
-                    {/* Logos con línea en el medio */}
-                    <div className="flex justify-center items-center mt-8">
-                        <img src={EnergiaBolivia} alt="Energia Bolivia" className="h-16 md:h-20 mr-4" />
-                        <div className="h-px w-16 bg-white mx-4"></div>
-                        <img src={luka} alt="Otro logo" className="h-16 md:h-20 ml-4" />
+            {/* Sección principal con diseño innovador */}
+            <div className="relative h-screen bg-cover bg-center" style={{ backgroundImage: `url(${backgroundImage})`, marginTop: '-44px' }}>
+                <div className="absolute inset-0 bg-gradient-to-r from-black via-transparent to-black opacity-70"></div>
+                <div className="absolute inset-0 flex flex-col justify-center items-center text-white">
+                    <div className="glass-container p-8 rounded-3xl text-center max-w-4xl mx-4">
+                        <h1 className="text-5xl md:text-7xl font-extrabold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-red-700 to-red-500">
+                        BOLIVIA BLOCKCHAIN SUMMIT
+                        </h1>
+                        <p className="text-xl md:text-2xl mb-8">
+                            Explora el futuro de la tecnología en nuestro evento exclusivo.
+                            Sigue los pasos para asegurar tu entrada.
+                        </p>
+                        <div className="flex justify-center items-center space-x-8">
+                            <img src={EnergiaBolivia} alt="Energia Bolivia" className="h-16 md:h-20 drop-shadow-glow" />
+                            <div className="h-16 w-px bg-white opacity-50"></div>
+                            <img src={luka} alt="Otro logo" className="h-16 md:h-20 drop-shadow-glow" />
+                        </div>
                     </div>
+                </div>
+                <div className="absolute bottom-10 left-0 right-0 flex justify-center">
+                    <Link to="/personal-data" className="animate-bounce bg-red-600 text-white font-bold py-3 px-6 rounded-full hover:bg-red-700 transition duration-300">
+                        Comienza Aquí
+                    </Link>
                 </div>
             </div>
 
-            {/* Sección de contenido principal */}
+            {/* Resto del contenido */}
             <div className="container mx-auto px-4 py-12">
                 {/* Pasos para la Compra de Entradas */}
                 <section className="mb-24">
@@ -80,7 +87,6 @@ function Home() {
         </div>
     );
 }
-
 function StepCard({ image, step, description, link }) {
     return (
         <Link to={link} className="flex flex-col items-center w-full md:w-80 bg-white rounded-lg shadow-lg p-6 transform transition duration-300 hover:-translate-y-2 hover:shadow-xl">
