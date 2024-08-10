@@ -23,7 +23,7 @@ exports.verifyQr = functions.https.onRequest((req, res) => {
 
     handleQrVerification(token)
         .then((result) => res.status(200).json(result))
-        .catch((error) => res.status(500).json({ message: error.message }));
+        .catch((error) => res.status(error.status || 500).json({ message: error.message }));
   });
 });
 
@@ -32,18 +32,24 @@ async function handleQrVerification(token) {
   const querySnapshot = await clientesCollection.where("token", "==", token).get();
 
   if (querySnapshot.empty) {
-    throw new Error("QR inválido");
+    const error = new Error("QR inválido");
+    error.status = 404; // Código para "No encontrado"
+    throw error;
   }
 
   const docRef = querySnapshot.docs[0].ref;
   const entry = querySnapshot.docs[0].data();
 
   if (entry.scanned) {
-    throw new Error("QR ya escaneado");
+    const error = new Error("QR ya escaneado");
+    error.status = 409; // Código para "Conflicto"
+    throw error;
   }
 
   if (!entry.paymentStatus) {
-    throw new Error("Pago no completado");
+    const error = new Error("Pago no completado");
+    error.status = 402; // Código para "Pago requerido"
+    throw error;
   }
 
   await docRef.update({ scanned: true });
