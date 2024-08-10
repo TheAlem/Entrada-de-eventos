@@ -21,15 +21,21 @@ const PersonalDataForm = () => {
   const [token, setToken] = useState(localStorage.getItem('userToken') || uuidv4());
 
   useEffect(() => {
-    if (!localStorage.getItem('userToken')) {
-      localStorage.setItem('userToken', token);
+    let userToken = localStorage.getItem('userToken');
+    if (!userToken) {
+      userToken = uuidv4();
+      localStorage.setItem('userToken', userToken);
+      setToken(userToken);
+    } else {
+      setToken(userToken);
     }
+
     const interval = setInterval(() => {
       checkTicketStatus();
     }, 5000); // Verifica el estado del ticket cada 5 segundos
 
     return () => clearInterval(interval);
-  }, [token]);
+  }, []);
 
   const checkTicketStatus = () => {
     listenToFirestoreUpdates((tickets) => {

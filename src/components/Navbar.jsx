@@ -24,9 +24,8 @@ function Navbar() {
         };
     }, []);
 
-    const navbarClass = `fixed top-0 left-0 right-0 z-50 transition duration-300 ease-in-out 
-        bg-white bg-opacity-20 backdrop-blur-lg shadow-md
-        ${isScrolled ? 'py-2' : 'py-4'}`;
+    const navbarClass = `fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out 
+        bg-white bg-opacity-20 backdrop-blur-lg shadow-md ${isScrolled ? 'py-2' : 'py-4'}`;
 
     const linkClass = `hover:text-green-500 transition duration-300 ease-in-out transform hover:-translate-y-1
         ${isHomePage && !isScrolled ? 'text-white' : 'text-gray-800'}`;
@@ -47,12 +46,12 @@ function Navbar() {
                 </div>
                 <div className="md:hidden flex items-center">
                     <button onClick={toggleMobileMenu} className={`focus:outline-none ${linkClass}`}>
-                        {isMobileMenuOpen ? <FaTimes className="text-2xl animate-spin" /> : <FaBars className="text-2xl animate-fade-in" />}
+                        {isMobileMenuOpen ? <FaTimes className="text-2xl" /> : <FaBars className="text-2xl" />}
                     </button>
                 </div>
             </div>
             {isMobileMenuOpen && (
-                <div className="md:hidden bg-white bg-opacity-90 backdrop-blur-lg shadow-lg rounded-lg mt-2 animate-slide-down">
+                <div className="md:hidden bg-white bg-opacity-90 backdrop-blur-lg shadow-lg rounded-lg mt-2 py-2 transition-opacity duration-500 ease-out">
                     <Link to="/personal-data" className="block text-gray-800 hover:text-green-500 px-4 py-2" onClick={toggleMobileMenu}>Datos Personales</Link>
                     <Link to="/payment" className="block text-gray-800 hover:text-green-500 px-4 py-2" onClick={toggleMobileMenu}>Pago</Link>
                     <Link to="/entry" className="block text-gray-800 hover:text-green-500 px-4 py-2" onClick={toggleMobileMenu}>Entrada</Link>
