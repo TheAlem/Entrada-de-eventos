@@ -80,4 +80,40 @@ const updatePaymentStatus = async (ticketId, paymentStatus) => {
     }
 };
 
-export { saveDataToFirestore, listenToFirestoreUpdates, updateTicketStatus, updatePaymentStatus };
+/**
+ * Actualiza los datos de un documento específico en la colección de clientes.
+ * 
+ * @param {string} docId - El ID del documento a actualizar.
+ * @param {Object} newData - Un objeto con los nuevos datos para actualizar en el documento.
+ * @returns {Promise<{success: boolean, error?: Error}>} - Un objeto indicando el resultado de la operación.
+ */
+const updateDocument = async (docId, newData) => {
+    try {
+        const documentRef = doc(db, 'clientes', docId);
+        await updateDoc(documentRef, newData);
+        return { success: true };
+    } catch (error) {
+        console.error("Error al actualizar el documento: ", error);
+        return { success: false, error };
+    }
+};
+
+/**
+ * Marks a ticket's payment as completed or not in the Firestore database.
+ * 
+ * @param {string} ticketId - The ID of the ticket to update.
+ * @param {boolean} hasPaid - The payment status to set.
+ * @returns {Promise<{success: boolean, error?: Error}>} - The result of the update operation.
+ */
+const markPaymentAsCompleted = async (ticketId, hasPaid) => {
+    try {
+        const ticketRef = doc(db, 'clientes', ticketId);
+        await updateDoc(ticketRef, { paymentStatus: hasPaid });
+        return { success: true };
+    } catch (error) {
+        console.error("Error updating payment status: ", error);
+        return { success: false, error };
+    }
+};
+
+export { saveDataToFirestore, listenToFirestoreUpdates, updateTicketStatus, updatePaymentStatus, updateDocument, markPaymentAsCompleted };

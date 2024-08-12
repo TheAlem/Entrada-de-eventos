@@ -36,14 +36,7 @@ function App() {
                   </TokenProtectedRoute>
                 }
               />
-              <Route
-                path="/entry"
-                element={
-                  <TokenProtectedRoute>
-                    <EntryQR />
-                  </TokenProtectedRoute>
-                }
-              />
+              <Route path="/entry/:token" element={<TokenProtectedRoute><EntryQR /></TokenProtectedRoute>} />
               <Route path="/login" element={<Login />} />
               <Route
                 path="/EscaneoQR"

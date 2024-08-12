@@ -7,6 +7,7 @@ function Navbar() {
     const [isScrolled, setIsScrolled] = useState(false);
     const location = useLocation();
     const isHomePage = location.pathname === '/';
+    const token = localStorage.getItem('userToken'); // Retrieve the token from local storage
 
     const toggleMobileMenu = () => {
         setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -39,7 +40,7 @@ function Navbar() {
                 <div className="hidden md:flex space-x-6">
                     <Link to="/personal-data" className={linkClass}>Datos Personales</Link>
                     <Link to="/payment" className={linkClass}>Pago</Link>
-                    <Link to="/entry" className={linkClass}>Entrada</Link>
+                    <Link to={`/entry/${token}`} className={linkClass}>Entrada</Link> {/* Dynamically use token */}
                     <Link to="/login" className={`${linkClass} flex items-center`}>
                         <FaUserCircle className="text-2xl" />
                     </Link>
@@ -54,7 +55,7 @@ function Navbar() {
                 <div className="md:hidden bg-white bg-opacity-90 backdrop-blur-lg shadow-lg rounded-lg mt-2 py-2 transition-opacity duration-500 ease-out">
                     <Link to="/personal-data" className="block text-gray-800 hover:text-green-500 px-4 py-2" onClick={toggleMobileMenu}>Datos Personales</Link>
                     <Link to="/payment" className="block text-gray-800 hover:text-green-500 px-4 py-2" onClick={toggleMobileMenu}>Pago</Link>
-                    <Link to="/entry" className="block text-gray-800 hover:text-green-500 px-4 py-2" onClick={toggleMobileMenu}>Entrada</Link>
+                    <Link to={`/entry/${token}`} className="block text-gray-800 hover:text-green-500 px-4 py-2" onClick={toggleMobileMenu}>Entrada</Link> {/* Dynamically use token */}
                     <Link to="/login" className="block text-gray-800 hover:text-green-500 px-4 py-2 flex items-center" onClick={toggleMobileMenu}>
                         <FaUserCircle className="text-2xl mr-2" /> Login
                     </Link>

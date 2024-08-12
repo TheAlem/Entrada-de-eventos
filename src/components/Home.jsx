@@ -16,8 +16,8 @@ import backgroundImage from '../assets/images/PlantaBK.jpg';
 function Home() {
     return (
         <div>
-            {/* Sección principal con diseño mejorado */}
             <div className="relative h-[60vh] bg-cover bg-center rounded-b-3xl overflow-hidden" style={{ backgroundImage: `url(${backgroundImage})`, marginTop: '-44px' }}>
+    <div className="absolute inset-0 bg-white opacity-20"></div> {/* Overlay blanco */}
     <div className="absolute inset-0 bg-gradient-to-r from-black via-transparent to-black opacity-70"></div>
     <div className="absolute inset-0 flex flex-col justify-center items-center text-white">
         <div className="glass-container p-4 sm:p-8 rounded-3xl text-center max-w-4xl mx-4 backdrop-blur-lg">

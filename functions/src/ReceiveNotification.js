@@ -1,7 +1,9 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 
-admin.initializeApp();
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
 
 exports.receiveNotification = functions.https.onRequest(async (req, res) => {
   // Asegurarse de que la solicitud es POST
