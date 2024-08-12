@@ -15,35 +15,45 @@ const PersonalDataForm = () => {
     profession: '',
     email: '',
     phone: '',
-    studentId: null
+    studentId: null,
   });
   const [message, setMessage] = useState('');
-  const [token, setToken] = useState(localStorage.getItem('userToken') || uuidv4());
+  const [token, setToken] = useState(localStorage.getItem('userToken') || null);
 
   useEffect(() => {
-    let userToken = localStorage.getItem('userToken');
-    if (!userToken) {
-      userToken = uuidv4();
-      localStorage.setItem('userToken', userToken);
-      setToken(userToken);
-    } else {
-      setToken(userToken);
+    if (token) {
+      const interval = setInterval(() => {
+        checkTicketStatus();
+      }, 5000); // Verifica el estado del ticket cada 5 segundos
+
+      return () => clearInterval(interval);
     }
+  }, [token]);
 
-    const interval = setInterval(() => {
-      checkTicketStatus();
-    }, 5000); // Verifica el estado del ticket cada 5 segundos
-
-    return () => clearInterval(interval);
-  }, []);
+  const generateAndStoreToken = () => {
+    const newToken = uuidv4();
+    localStorage.setItem('userToken', newToken);
+    setToken(newToken);
+    return newToken;
+  };
 
   const checkTicketStatus = () => {
     listenToFirestoreUpdates((tickets) => {
       const userTicket = tickets.find(ticket => ticket.token === token);
-      if (userTicket && userTicket.status === 'approved') {
-        window.location.href = `/payment?level=${userTicket.academicLevel}`;
+      if (userTicket) {
+        if (userTicket.status === 'approved') {
+          window.location.href = `/payment?level=${userTicket.academicLevel}`;
+        } else if (userTicket.status === 'completed') {
+          window.location.href = `/entry`;
+          clearSession();
+        }
       }
     });
+  };
+
+  const clearSession = () => {
+    localStorage.removeItem('userToken');
+    setToken(null);
   };
 
   const handleChange = (e) => {
@@ -51,19 +61,20 @@ const PersonalDataForm = () => {
     if (name === "studentId") {
       setFormData({
         ...formData,
-        [name]: files[0]
+        [name]: files[0],
       });
     } else {
       setFormData({
         ...formData,
-        [name]: value
+        [name]: value,
       });
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const formDataWithToken = { ...formData, token };
+    const userToken = token || generateAndStoreToken();
+    const formDataWithToken = { ...formData, token: userToken };
 
     const result = await saveDataToFirestore(formDataWithToken);
     if (result.success) {

@@ -36,11 +36,10 @@ export function AuthProvider({ children }) {
         return signOut(auth);
     };
 
-    // Timer for auto logout
     let logoutTimer;
 
     const startLogoutTimer = () => {
-        const logoutTime = 30 * 60 * 1000; // 30 minutes
+        const logoutTime = 30 * 60 * 1000; // 30 minutos
         logoutTimer = setTimeout(() => {
             logout();
             alert('Has sido desconectado por inactividad.');
@@ -53,13 +52,11 @@ export function AuthProvider({ children }) {
         }
     };
 
-    // Reset timer on user activity
     const resetLogoutTimer = () => {
         stopLogoutTimer();
         startLogoutTimer();
     };
 
-    // Add event listeners for user activity
     useEffect(() => {
         window.addEventListener('mousemove', resetLogoutTimer);
         window.addEventListener('mousedown', resetLogoutTimer);

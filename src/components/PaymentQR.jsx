@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { generateQR } from '../Firebase/Api/api';
-import { getFirestore, doc, setDoc } from 'firebase/firestore';
+import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
+import { listenToFirestoreUpdates } from '../Firebase/PersonalData/BkForm';
 import 'tailwindcss/tailwind.css';
 
 const PaymentQR = () => {
@@ -11,21 +12,22 @@ const PaymentQR = () => {
   const [paymentChecked, setPaymentChecked] = useState(false);
   const navigate = useNavigate();
 
-  const handleGenerateQR = async () => {
+  const handleGenerateQR = async (clientData) => {
     setLoading(true);
     setError('');
     try {
+      const paymentAmount = clientData.academicLevel === 'Student' ? "150" : "300"; // 150 BOB para estudiantes, 300 BOB para profesionales
       const paymentDetails = {
         currency: "BOB",
         gloss: "Pago Entrada Evento",
-        amount: "0.01",
+        amount: paymentAmount,
         singleUse: "true",
         expirationDate: "2024-09-01", 
         additionalData: `Datos Adicionales - ${new Date().toISOString()}`
       };      
       const data = await generateQR(paymentDetails);
       setQrData(data);
-      await savePaymentInfo(data);
+      await savePaymentInfo(data, clientData.id);
     } catch (err) {
       setError(`Error al generar el QR: ${err.message}`);
       console.error('Error en handleGenerateQR:', err);
@@ -34,20 +36,53 @@ const PaymentQR = () => {
     }
   };
 
-  const savePaymentInfo = async (qrData) => {
+  const savePaymentInfo = async (qrData, clientId) => {
     try {
       const db = getFirestore();
-      const docRef = doc(db, 'payments', qrData.id);
-      await setDoc(docRef, qrData);
+      const docRef = doc(db, 'payments', clientId); // Guardar con el ID del cliente
+      await setDoc(docRef, {
+        ...qrData,
+        clientId, // Asociar con el ID del cliente
+        timestamp: new Date(),
+      });
       console.log('Información del pago guardada en Firestore');
     } catch (err) {
       console.error('Error al guardar la información del pago:', err);
-      // Considera si quieres manejar este error de alguna manera específica
+    }
+  };
+
+  const checkPaymentStatus = async (clientId) => {
+    try {
+      const db = getFirestore();
+      const docRef = doc(db, 'clientes', clientId);
+      const docSnapshot = await getDoc(docRef);
+
+      if (docSnapshot.exists() && docSnapshot.data().paymentStatus) {
+        setPaymentChecked(true);
+        navigate('/entry');
+      } else {
+        setTimeout(() => checkPaymentStatus(clientId), 5000); // Revisa el estado de pago cada 5 segundos
+      }
+    } catch (err) {
+      setError('Error al verificar el estado de pago.');
+      console.error('Error en checkPaymentStatus:', err);
     }
   };
 
   useEffect(() => {
-    handleGenerateQR();
+    const fetchClientData = async () => {
+      listenToFirestoreUpdates((clients) => {
+        const currentClient = clients.find(client => client.token === localStorage.getItem('userToken'));
+        if (currentClient) {
+          handleGenerateQR(currentClient);
+          checkPaymentStatus(currentClient.id);
+        } else {
+          setError("No se encontró información del cliente.");
+          setLoading(false);
+        }
+      });
+    };
+    fetchClientData();
   }, []);
 
   const handleDownloadQR = () => {

@@ -1,6 +1,8 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 
+admin.initializeApp();
+
 exports.receiveNotification = functions.https.onRequest(async (req, res) => {
   // Asegurarse de que la solicitud es POST
   if (req.method !== "POST") {
@@ -40,6 +42,10 @@ exports.receiveNotification = functions.https.onRequest(async (req, res) => {
 
     // Guardar la nueva notificación
     await paymentRef.set(paymentData);
+
+    // Actualizar el estado de pago del cliente en la colección `clientes`
+    const clientRef = db.collection("clientes").doc(QRId);
+    await clientRef.update({ paymentStatus: true });
 
     // Responder con éxito
     return res.status(200).json({ success: true, message: "Notificación recibida y procesada con éxito" });

@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import React, { useContext } from 'react';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Home from './components/Home';
 import PersonalDataForm from './components/PersonalDataForm';
@@ -7,14 +7,18 @@ import PaymentQR from './components/PaymentQR';
 import EntryQR from './components/EntryQR';
 import Footer from './components/Footer';
 import Login from './components/admin/Login';
-import Escaneo from './components/admin/QRScanner'
+import Escaneo from './components/admin/QRScanner';
 import AdminDashboard from './components/admin/admin';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './Firebase/context/AuthContext';
+import { TokenProvider, useToken } from './Firebase/context/TokenContext';
+
+function TokenProtectedRoute({ children }) {
+  const { token } = useToken();
+  return token ? children : <Navigate to="/personal-data" />;
+}
 
 function App() {
-  const exampleToken = "83cfd42d-9558-413d-8061-9067a4be145b"; // Reemplaza con el token del documento real
-
   return (
     <AuthProvider>
       <Router>
@@ -24,11 +28,39 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/personal-data" element={<PersonalDataForm />} />
-              <Route path="/payment" element={<PaymentQR />} />
-              <Route path="/entry" element={<EntryQR token={exampleToken} />} />
+              <Route
+                path="/payment"
+                element={
+                  <TokenProtectedRoute>
+                    <PaymentQR />
+                  </TokenProtectedRoute>
+                }
+              />
+              <Route
+                path="/entry"
+                element={
+                  <TokenProtectedRoute>
+                    <EntryQR />
+                  </TokenProtectedRoute>
+                }
+              />
               <Route path="/login" element={<Login />} />
-              <Route path='/EscaneoQR' element={<ProtectedRoute><Escaneo/></ProtectedRoute>}/>
-              <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+              <Route
+                path="/EscaneoQR"
+                element={
+                  <ProtectedRoute>
+                    <Escaneo />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute>
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
             </Routes>
           </div>
           <Footer />
