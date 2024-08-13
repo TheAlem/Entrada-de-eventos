@@ -8,6 +8,7 @@ const QRScanner = () => {
     const [modalIsOpen, setModalIsOpen] = useState(false);
     const [modalContent, setModalContent] = useState('Acerque el QR para escanear');
     const [isScanning, setIsScanning] = useState(false);
+    const [hasScanned, setHasScanned] = useState(false); // Nueva bandera para evitar escaneos repetidos
     const qrRef = useRef(null);
     const qrScanner = useRef(null);
 
@@ -21,14 +22,14 @@ const QRScanner = () => {
     }, []);
 
     const startScanner = async () => {
-        if (!qrScanner.current) {
+        if (!qrScanner.current && !hasScanned) { // Solo iniciar el escáner si no ha escaneado
             try {
                 const devices = await Html5Qrcode.getCameras();
                 if (devices.length) {
                     qrScanner.current = new Html5Qrcode(qrRef.current.id);
                     const config = {
-                        fps: 15, // Ajustado de 10 a 15
-                        qrbox: { width: 300, height: 300 }, // Ajustado a un tamaño más grande
+                        fps: 15,
+                        qrbox: { width: 300, height: 300 },
                         aspectRatio: 1.0
                     };
                     await qrScanner.current.start({ facingMode: "environment" }, config, onScanSuccess, onScanFailure);
@@ -50,6 +51,7 @@ const QRScanner = () => {
             qrScanner.current.stop().then(() => {
                 qrScanner.current = null;
                 setIsScanning(false);
+                setHasScanned(false); // Permitir escanear nuevamente después de detener
                 setModalContent('Escaneo detenido');
                 setModalIsOpen(true);
             }).catch(err => {
@@ -60,45 +62,47 @@ const QRScanner = () => {
     };
 
     const onScanSuccess = async (decodedText, decodedResult) => {
-      try {
-          const qrData = JSON.parse(decodedText);
-          const response = await axios.post('https://us-central1-energiaboliviappandroid.cloudfunctions.net/VerifyQr-verifyQr', { token: qrData.token }, { headers: { 'Content-Type': 'application/json' }});
-          if (response.data) {
-              setQrCodeResult(JSON.stringify(response.data, null, 2));
-              setModalContent(`QR válido: ${response.data.message}`);
-          }
-      } catch (error) {
-          let errorMessage = `Error en la solicitud: ${error.message}`;
-          if (error.response && error.response.data && error.response.data.message) {
-              errorMessage = error.response.data.message;
-          }
-          setModalContent(errorMessage);
-          setModalIsOpen(true);
-      }
-      stopScanner();
-  };
+        if (hasScanned) {
+            setModalContent('QR ya ha sido escaneado. Por favor, espere.');
+            setModalIsOpen(true);
+            return;
+        }
 
+        setHasScanned(true); // Marcar como escaneado
+        try {
+            const qrData = JSON.parse(decodedText);
+            const response = await axios.post('https://us-central1-energiaboliviappandroid.cloudfunctions.net/VerifyQr-verifyQr', { token: qrData.token }, { headers: { 'Content-Type': 'application/json' }});
+            if (response.data) {
+                setQrCodeResult(JSON.stringify(response.data, null, 2));
+                setModalContent(`QR válido: ${response.data.message}`);
+            }
+        } catch (error) {
+            let errorMessage = `Error en la solicitud: ${error.message}`;
+            if (error.response && error.response.data && error.response.data.message) {
+                errorMessage = error.response.data.message;
+            }
+            setModalContent(errorMessage);
+            setModalIsOpen(true);
+        }
+        stopScanner();
+    };
 
     const onScanFailure = error => {
-      // Revisamos si el mensaje de error es el que queremos evitar.
-      if (error.includes("No MultiFormat Readers were able to detect the code")) {
-          console.log(`Fallo controlado en el escaneo: ${error}`);
-          // No hacemos nada más, no mostramos el modal ni actualizamos el contenido.
-      } else {
-          // Para cualquier otro error, procedemos como antes.
-          console.log(`Fallo en el escaneo: ${error}`);
-          setModalContent(`Fallo en el escaneo: ${error}. Ajuste y vuelva a intentar.`);
-          setModalIsOpen(true);
-      }
-  };
-  
+        if (error.includes("No MultiFormat Readers were able to detect the code")) {
+            console.log(`Fallo controlado en el escaneo: ${error}`);
+        } else {
+            console.log(`Fallo en el escaneo: ${error}`);
+            setModalContent(`Fallo en el escaneo: ${error}. Ajuste y vuelva a intentar.`);
+            setModalIsOpen(true);
+        }
+    };
 
     return (
         <div className="flex flex-col items-center justify-center p-4 mt-16">
             <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
                 <h2 className="text-2xl font-bold mb-4 text-center text-green-600">Escáner QR</h2>
                 <div className="flex justify-center space-x-4 mb-4">
-                    <button className={`px-4 py-2 rounded-full font-semibold text-white ${isScanning ? 'bg-gray-400' : 'bg-green-500 hover:bg-green-600'}`} onClick={startScanner} disabled={isScanning}>
+                    <button className={`px-4 py-2 rounded-full font-semibold text-white ${isScanning ? 'bg-gray-400' : 'bg-green-500 hover:bg-green-600'}`} onClick={startScanner} disabled={isScanning || hasScanned}>
                         Iniciar Escaneo
                     </button>
                     <button className={`px-4 py-2 rounded-full font-semibold text-white ${!isScanning ? 'bg-gray-400' : 'bg-red-500 hover:bg-red-600'}`} onClick={stopScanner} disabled={!isScanning}>
