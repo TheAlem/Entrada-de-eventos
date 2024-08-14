@@ -10,73 +10,42 @@ export function useAuth() {
 
 export function AuthProvider({ children }) {
     const [currentUser, setCurrentUser] = useState(null);
+    const [isAdmin, setIsAdmin] = useState(false);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, user => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
             setCurrentUser(user);
             setLoading(false);
+
+            if (user) {
+                // Verifica si el UID del usuario coincide con el del admin
+                if (user.uid === "ru35UKp2uOXdImp33PnFRLGmkpB2") { // Reemplaza con el UID del admin
+                    setIsAdmin(true);
+                } else {
+                    setIsAdmin(false);
+                }
+            } else {
+                setIsAdmin(false);
+            }
         });
 
         return unsubscribe;
     }, []);
-
-    useEffect(() => {
-        if (currentUser) {
-            startLogoutTimer();
-        }
-    }, [currentUser]);
 
     const login = (email, password) => {
         return signInWithEmailAndPassword(auth, email, password);
     };
 
     const logout = () => {
-        stopLogoutTimer();
         return signOut(auth);
     };
 
-    let logoutTimer;
-
-    const startLogoutTimer = () => {
-        const logoutTime = 30 * 60 * 1000; // 30 minutos
-        logoutTimer = setTimeout(() => {
-            logout();
-            alert('Has sido desconectado por inactividad.');
-        }, logoutTime);
-    };
-
-    const stopLogoutTimer = () => {
-        if (logoutTimer) {
-            clearTimeout(logoutTimer);
-        }
-    };
-
-    const resetLogoutTimer = () => {
-        stopLogoutTimer();
-        startLogoutTimer();
-    };
-
-    useEffect(() => {
-        window.addEventListener('mousemove', resetLogoutTimer);
-        window.addEventListener('mousedown', resetLogoutTimer);
-        window.addEventListener('click', resetLogoutTimer);
-        window.addEventListener('keydown', resetLogoutTimer);
-        window.addEventListener('scroll', resetLogoutTimer);
-
-        return () => {
-            window.removeEventListener('mousemove', resetLogoutTimer);
-            window.removeEventListener('mousedown', resetLogoutTimer);
-            window.removeEventListener('click', resetLogoutTimer);
-            window.removeEventListener('keydown', resetLogoutTimer);
-            window.removeEventListener('scroll', resetLogoutTimer);
-        };
-    }, []);
-
     const value = {
         currentUser,
+        isAdmin,
         login,
-        logout
+        logout,
     };
 
     return (

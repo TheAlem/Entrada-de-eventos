@@ -2,7 +2,7 @@ import React from 'react';
 
 function Footer() {
     return (
-        <footer className="shadow-md border-t border-gray-700 py-8" style={{ backgroundColor: '#183c33' }}>
+        <footer className="shadow-md border-t border-gray-700 py-8 " style={{ backgroundColor: '#183c33' }}>
             <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
                 <div className="text-gray-200 text-center md:text-left mb-4 md:mb-0">
                     <h2 className="text-xl font-bold">Evento de Blockchain</h2>

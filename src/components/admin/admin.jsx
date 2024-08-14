@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../Firebase/context/AuthContext';
 import { listenToFirestoreUpdates, updateTicketStatus, updateDocument, markPaymentAsCompleted } from '../../Firebase/PersonalData/BkForm';
 import { FiEdit, FiCheckSquare, FiXSquare, FiDownload, FiDollarSign, FiEye, FiExternalLink } from 'react-icons/fi';
 import 'tailwindcss/tailwind.css';
@@ -9,10 +10,20 @@ function AdminDashboard() {
     const [tickets, setTickets] = useState([]);
     const [editMode, setEditMode] = useState(null);
     const [editData, setEditData] = useState({});
+    const { logout } = useAuth(); 
 
     useEffect(() => {
         listenToFirestoreUpdates(setTickets);
     }, []);
+
+    const handleLogout = async () => {
+        try {
+            await logout();
+            navigate('/login'); // Redirige al usuario a la página de login después de cerrar sesión
+        } catch (error) {
+            console.error("Error al cerrar sesión:", error);
+        }
+    };
 
     const handleChange = (id, field, value) => {
         setEditData(prevData => ({
@@ -65,12 +76,19 @@ function AdminDashboard() {
     return (
         <div className="min-h-screen flex flex-col items-center bg-gray-50 pt-16">
             <div className="w-full max-w-5xl p-6">
-                <button
-                    onClick={() => navigate('/EscaneoQR')}
-                    className="mb-8 px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow hover:bg-indigo-700 transition-all duration-300"
-                >
-                    Escanear QR
-                </button>
+            <div className="flex justify-between items-center mb-8">
+                    <button
+                        onClick={() => navigate('/EscaneoQR')}
+                        className="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow hover:bg-indigo-700 transition-all duration-300"
+                    >
+                        Escanear QR
+                    </button>
+                    <button
+                        onClick={handleLogout}
+                        className="px-6 py-3 bg-red-600 text-white font-semibold rounded-lg shadow hover:bg-red-700 transition-all duration-300">
+                        Cerrar Sesión
+                    </button>
+                </div>
 
                 <div className="mb-12">
                     <h3 className="text-3xl font-bold text-gray-800 mb-6">Registros de Estudiantes</h3>

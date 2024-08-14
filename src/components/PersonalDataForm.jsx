@@ -1,10 +1,11 @@
-  import React, { useState, useEffect } from 'react';
-  import { v4 as uuidv4 } from 'uuid';
-  import { saveDataToFirestore, listenToFirestoreUpdates } from '../Firebase/PersonalData/BkForm';
-  import 'tailwindcss/tailwind.css';
+import React, { useState, useEffect } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+import { saveDataToFirestore, listenToFirestoreUpdates } from '../Firebase/PersonalData/BkForm'; 
+import { useToken } from '../Firebase/context/TokenContext';
+import 'tailwindcss/tailwind.css';
 
-  const PersonalDataForm = () => {
-    const [formData, setFormData] = useState({
+const PersonalDataForm = () => {
+  const [formData, setFormData] = useState({
       firstName: '',
       lastName: '',
       birthDate: '',
@@ -16,77 +17,80 @@
       email: '',
       phone: '',
       studentId: null,
-    });
-    const [message, setMessage] = useState('');
-    const [token, setToken] = useState(localStorage.getItem('userToken') || null);
+  });
+  const [message, setMessage] = useState('');
+  const { token, updateToken } = useToken(); // Obtén el token y updateToken desde el contexto
 
-    useEffect(() => {
+  useEffect(() => {
       if (token) {
-        const interval = setInterval(() => {
-          checkTicketStatus();
-        }, 5000); // Verifica el estado del ticket cada 5 segundos
+          const interval = setInterval(() => {
+              checkTicketStatus();
+          }, 5000); // Verifica el estado del ticket cada 5 segundos
 
-        return () => clearInterval(interval);
+          return () => clearInterval(interval);
       }
-    }, [token]);
+  }, [token]);
 
-    const generateAndStoreToken = () => {
+  const generateAndStoreToken = () => {
       const newToken = uuidv4();
       localStorage.setItem('userToken', newToken);
-      setToken(newToken);
+      updateToken(newToken); // Actualiza el token en el contexto
       return newToken;
-    };
+  };
 
-    const checkTicketStatus = () => {
+  const checkTicketStatus = () => {
       listenToFirestoreUpdates((tickets) => {
-        const userTicket = tickets.find(ticket => ticket.token === token);
-        if (userTicket) {
-          if (userTicket.status === 'approved') {
-            window.location.href = `/payment?level=${userTicket.academicLevel}`;
-          } else if (userTicket.status === 'completed') {
-            window.location.href = `/entry`;
-            clearSession();
+          const userTicket = tickets.find(ticket => ticket.token === token);
+          if (userTicket) {
+              if (userTicket.status === 'approved') {
+                  window.location.href = `/payment?level=${userTicket.academicLevel}`;
+              } else if (userTicket.status === 'completed') {
+                  window.location.href = `/entry`;
+                  clearSession();
+              }
           }
-        }
       });
-    };
+  };
 
-    const clearSession = () => {
+  const clearSession = () => {
       localStorage.removeItem('userToken');
-      setToken(null);
-    };
+      updateToken(null); // Limpia el token en el contexto
+  };
 
-    const handleChange = (e) => {
+  const handleChange = (e) => {
       const { name, value, files } = e.target;
       if (name === "studentId") {
-        setFormData({
-          ...formData,
-          [name]: files[0],
-        });
+          setFormData({
+              ...formData,
+              [name]: files[0],
+          });
       } else {
-        setFormData({
-          ...formData,
-          [name]: value,
-        });
+          setFormData({
+              ...formData,
+              [name]: value,
+          });
       }
-    };
+  };
 
-    const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
       e.preventDefault();
       const userToken = token || generateAndStoreToken();
       const formDataWithToken = { ...formData, token: userToken };
 
       const result = await saveDataToFirestore(formDataWithToken);
       if (result.success) {
-        if (formData.academicLevel === 'Student') {
-          setMessage('Tus datos están en revisión. Serás redirigido una vez sean aprobados.');
-        } else {
-          window.location.href = `/payment?level=${formData.academicLevel}`;
-        }
+          // Actualiza el token en el TokenContext para asegurar que esté disponible
+          updateToken(userToken);
+
+          if (formData.academicLevel === 'Student') {
+              setMessage('Tus datos están en revisión. Serás redirigido una vez sean aprobados.');
+          } else {
+              window.location.href = `/payment?level=${formData.academicLevel}`;
+          }
       } else {
-        alert('Error al enviar los datos');
+          alert('Error al enviar los datos');
       }
-    };
+  };
 
     return (
       <div className="min-h-screen flex items-center justify-center">
