@@ -6,7 +6,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://test.bnb.com.bo',
+        target: 'https://marketapi.bnb.com.bo',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },

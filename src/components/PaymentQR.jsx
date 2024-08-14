@@ -1,34 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { generateQR } from '../Firebase/Api/api';
-import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
+import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
+import { listenToFirestoreUpdates } from '../Firebase/PersonalData/BkForm';
 import 'tailwindcss/tailwind.css';
 
 const PaymentQR = () => {
-  const { token } = useParams(); // Obtén el token desde la URL
-  const navigate = useNavigate();
   const [qrData, setQrData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
-  const checkExistingPayment = async () => {
+  const checkExistingPayment = async (clientToken) => {
     try {
       const db = getFirestore();
-      const docRef = doc(db, 'clientes', token.trim());
-      console.log('Consultando Firestore con el token:', token.trim()); // Log adicional
+      const docRef = doc(db, 'clientes', clientToken);
       const docSnapshot = await getDoc(docRef);
 
-      if (docSnapshot.exists()) {
-        const data = docSnapshot.data();
-        console.log('Documento encontrado:', data);
-        if (data.paymentStatus) {
-          navigate(`/entry/${token.trim()}`, { replace: true });
-          return true;
-        }
-      } else {
-        console.error('No se encontró el documento para el token:', token.trim());
+      if (docSnapshot.exists() && docSnapshot.data().paymentStatus) {
+        navigate(`/entry/${clientToken}`);
+        return true; // Return true if payment is already completed
       }
-      return false;
+      return false; // Return false if payment is not completed
     } catch (err) {
       setError('Error al verificar el estado de pago.');
       console.error('Error en checkExistingPayment:', err);
@@ -40,7 +33,7 @@ const PaymentQR = () => {
     setLoading(true);
     setError('');
     try {
-      const paymentAmount = clientData.academicLevel === 'Student' ? "150" : "300";
+      const paymentAmount = clientData.academicLevel === 'Student' ? "150" : "0.01";
       const paymentDetails = {
         currency: "BOB",
         gloss: "Pago Entrada Evento",
@@ -51,8 +44,8 @@ const PaymentQR = () => {
       };      
       const data = await generateQR(paymentDetails);
       setQrData(data);
-      await savePaymentInfo(data);
-      checkPaymentStatus();
+      await savePaymentInfo(data, clientData.token);
+      checkPaymentStatus(clientData.token); // Revisa el estado del pago
     } catch (err) {
       setError(`Error al generar el QR: ${err.message}`);
     } finally {
@@ -60,13 +53,13 @@ const PaymentQR = () => {
     }
   };
 
-  const savePaymentInfo = async (qrData) => {
+  const savePaymentInfo = async (qrData, clientToken) => {
     try {
       const db = getFirestore();
-      const docRef = doc(db, 'payments', token.trim());
+      const docRef = doc(db, 'payments', clientToken);
       await setDoc(docRef, {
         ...qrData,
-        token: token.trim(),
+        token: clientToken,
         timestamp: new Date(),
       });
     } catch (err) {
@@ -74,24 +67,16 @@ const PaymentQR = () => {
     }
   };
 
-  const checkPaymentStatus = async () => {
+  const checkPaymentStatus = async (clientToken) => {
     try {
       const db = getFirestore();
-      const docRef = doc(db, 'clientes', token.trim());
-      console.log('Verificando token:', token.trim()); // Log adicional
+      const docRef = doc(db, 'clientes', clientToken);
       const docSnapshot = await getDoc(docRef);
 
-      if (docSnapshot.exists()) {
-        const paymentStatus = docSnapshot.data().paymentStatus;
-        if (paymentStatus) {
-          navigate(`/entry/${token.trim()}`, { replace: true });
-        } else {
-          setTimeout(checkPaymentStatus, 5000);
-        }
+      if (docSnapshot.exists() && docSnapshot.data().paymentStatus) {
+        navigate(`/entry/${clientToken}`);
       } else {
-        console.error('Cliente no encontrado para el token:', token.trim());
-        setError('Cliente no encontrado.');
-        setLoading(false);
+        setTimeout(() => checkPaymentStatus(clientToken), 5000);
       }
     } catch (err) {
       setError('Error al verificar el estado de pago.');
@@ -101,26 +86,21 @@ const PaymentQR = () => {
 
   useEffect(() => {
     const fetchClientData = async () => {
-      console.log('Intentando obtener datos del cliente con el token:', token.trim()); // Log adicional
-      const db = getFirestore();
-      const docRef = doc(db, 'clientes', token.trim());
-      const docSnapshot = await getDoc(docRef);
-
-      if (docSnapshot.exists()) {
-        const currentClient = docSnapshot.data();
-        const paymentCompleted = await checkExistingPayment();
-        if (!paymentCompleted) {
-          handleGenerateQR(currentClient);
+      listenToFirestoreUpdates(async (clients) => {
+        const currentClient = clients.find(client => client.token === localStorage.getItem('userToken'));
+        if (currentClient) {
+          const paymentCompleted = await checkExistingPayment(currentClient.token);
+          if (!paymentCompleted) {
+            handleGenerateQR(currentClient);
+          }
+        } else {
+          setError("No se encontró información del cliente.");
+          setLoading(false);
         }
-        checkPaymentStatus();
-      } else {
-        console.error('No se encontró información del cliente con el token:', token.trim());
-        setError("No se encontró información del cliente.");
-        setLoading(false);
-      }
+      });
     };
     fetchClientData();
-  }, [token, navigate]);
+  }, []);
 
   const handleDownloadQR = () => {
     if (qrData && qrData.qr) {

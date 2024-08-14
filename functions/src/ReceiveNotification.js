@@ -1,25 +1,25 @@
 const functions = require("firebase-functions");
-const admin = require("firebase-admin");
-
-if (!admin.apps.length) {
-  admin.initializeApp();
-}
+const { admin, db } = require("../firebaseAdmin");
 
 exports.receiveNotification = functions.https.onRequest(async (req, res) => {
-  // Asegurarse de que la solicitud es POST
+  console.log("Received a request:", req.method, req.body); // Log para ver la solicitud recibida
+
   if (req.method !== "POST") {
+    console.log("Method Not Allowed"); // Log cuando el método no es POST
     return res.status(405).send("Method Not Allowed");
   }
 
   try {
     const { QRId, Gloss, sourceBankId, originName, VoucherId, TransactionDateTime, additionalData } = req.body;
 
-    // Validar que todos los campos necesarios están presentes
+    // Log para ver los datos recibidos
+    console.log("Received data:", { QRId, Gloss, sourceBankId, originName, VoucherId, TransactionDateTime, additionalData });
+
     if (!QRId || !Gloss || !sourceBankId || !originName || !VoucherId || !TransactionDateTime) {
-      return res.status(400).json({ success: false, message: "Faltan datos obligatorios" });
+      console.log("Missing required data fields"); // Log cuando faltan campos
+      return res.status(400).json({ success: false, message: "Missing required data fields" });
     }
 
-    // Preparar la data para guardar en Firestore
     const paymentData = {
       QRId,
       Gloss,
@@ -28,31 +28,28 @@ exports.receiveNotification = functions.https.onRequest(async (req, res) => {
       VoucherId,
       TransactionDateTime,
       additionalData: additionalData || "",
-      status: "paid", // Indica que este QR ha sido pagado
+      status: "paid",
       timestamp: admin.firestore.FieldValue.serverTimestamp(),
     };
 
-    // Guardar la información del pago en Firestore
-    const db = admin.firestore();
     const paymentRef = db.collection("payments").doc(QRId);
 
-    // Evitar duplicados verificando si el documento ya existe
     const docSnapshot = await paymentRef.get();
     if (docSnapshot.exists) {
-      return res.status(200).json({ success: true, message: "Notificación ya procesada" });
+      console.log("Notification already processed"); // Log cuando la notificación ya fue procesada
+      return res.status(200).json({ success: true, message: "Notification already processed" });
     }
 
-    // Guardar la nueva notificación
     await paymentRef.set(paymentData);
+    console.log("Payment data saved:", paymentData); // Log cuando los datos de pago se guardan
 
-    // Actualizar el estado de pago del cliente en la colección `clientes`
     const clientRef = db.collection("clientes").doc(QRId);
     await clientRef.update({ paymentStatus: true });
+    console.log("Client payment status updated for QRId:", QRId); // Log cuando el estado de pago del cliente se actualiza
 
-    // Responder con éxito
-    return res.status(200).json({ success: true, message: "Notificación recibida y procesada con éxito" });
+    return res.status(200).json({ success: true, message: "Notification received and processed successfully" });
   } catch (error) {
-    console.error("Error al procesar la notificación:", error);
-    return res.status(500).json({ success: false, message: "Error interno del servidor" });
+    console.error("Error processing notification:", error); // Log cuando hay un error
+    return res.status(500).json({ success: false, message: "Internal server error" });
   }
 });

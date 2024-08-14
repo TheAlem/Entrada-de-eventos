@@ -10,49 +10,40 @@ import Login from './components/admin/Login';
 import Escaneo from './components/admin/QRScanner';
 import AdminDashboard from './components/admin/admin';
 import ProtectedRoute from './components/ProtectedRoute';
-import { AuthProvider } from './Firebase/context/AuthContext';
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <div className="min-h-screen flex flex-col">
-          <Navbar />
-          <div className="flex-grow pt-16">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/personal-data" element={<PersonalDataForm />} />
-              <Route
-                path="/payment/:token"
-                element={<PaymentQR />}
-              />
-              <Route
-                path="/entry/:token"
-                element={<EntryQR />}
-              />
-              <Route path="/login" element={<Login />} />
-              <Route
-                path="/EscaneoQR"
-                element={
-                  <ProtectedRoute>
-                    <Escaneo />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin"
-                element={
-                  <ProtectedRoute>
-                    <AdminDashboard />
-                  </ProtectedRoute>
-                }
-              />
-            </Routes>
-          </div>
-          <Footer />
+    <Router>
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <div className="flex-grow pt-16">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/personal-data" element={<PersonalDataForm />} />
+            <Route path="/payment/:token" element={<PaymentQR />} />
+            <Route path="/entry/:token" element={<EntryQR />} />
+            <Route path="/login" element={<Login />} />
+            <Route
+              path="/EscaneoQR"
+              element={
+                <ProtectedRoute>
+                  <Escaneo />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
         </div>
-      </Router>
-    </AuthProvider>
+        <Footer />
+      </div>
+    </Router>
   );
 }
 

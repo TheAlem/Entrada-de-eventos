@@ -71,7 +71,7 @@ const QRScanner = () => {
         setHasScanned(true); // Marcar como escaneado
         try {
             const qrData = JSON.parse(decodedText);
-            const response = await axios.post('https://us-central1-energiaboliviappandroid.cloudfunctions.net/VerifyQr-verifyQr', { token: qrData.token }, { headers: { 'Content-Type': 'application/json' }});
+            const response = await axios.post('https://us-central1-energiaboliviappandroid.cloudfunctions.net/VerifyQr', { token: qrData.token }, { headers: { 'Content-Type': 'application/json' }});
             if (response.data) {
                 setQrCodeResult(JSON.stringify(response.data, null, 2));
                 setModalContent(`QR válido: ${response.data.message}`);

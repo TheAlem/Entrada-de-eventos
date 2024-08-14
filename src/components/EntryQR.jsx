@@ -1,32 +1,43 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../Firebase/firebase-config';
 import { query, where, collection, getDocs, doc, setDoc } from 'firebase/firestore';
 import QRCode from 'qrcode.react';
 import html2canvas from 'html2canvas';
+import { ClipLoader } from 'react-spinners'; // Importa el spinner desde react-spinners
 
 const EntryQR = () => {
-  const { token } = useParams(); // Retrieve the token directly from URL parameters
+  const { token } = useParams();
+  const navigate = useNavigate();
   const [entry, setEntry] = useState(null);
   const [downloadCount, setDownloadCount] = useState(0);
-  const [hasPaid, setHasPaid] = useState(true); // State to track if the payment was made
+  const [hasPaid, setHasPaid] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchEntry = async () => {
-      const q = query(collection(db, 'clientes'), where("token", "==", token));
-      const querySnapshot = await getDocs(q);
-      if (!querySnapshot.empty) {
-        querySnapshot.forEach((doc) => {
-          const entryData = doc.data();
-          if (entryData.paymentStatus) {
-            setEntry(entryData);
-            triggerSendEmail(entryData); // Trigger the email send function
-          } else {
-            setHasPaid(false);
-          }
-        });
-      } else {
-        console.log("No se encontró ningún documento con el token proporcionado.");
+      try {
+        const q = query(collection(db, 'clientes'), where("token", "==", token));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+          querySnapshot.forEach((doc) => {
+            const entryData = doc.data();
+            if (entryData.paymentStatus) {
+              setEntry(entryData);
+              triggerSendEmail(entryData);
+            } else {
+              setHasPaid(false);
+            }
+          });
+        } else {
+          throw new Error("No encontramos tu información. Asegúrate de haber ingresado el token correctamente.");
+        }
+      } catch (err) {
+        setError(`Hubo un problema al cargar tu información: ${err.message}`);
+      } finally {
+        setLoading(false);
       }
     };
     fetchEntry();
@@ -35,56 +46,88 @@ const EntryQR = () => {
   const triggerSendEmail = async (entryData) => {
     try {
       const docRef = doc(db, 'clientes', entryData.token);
-      await setDoc(docRef, entryData, { merge: true }); // Merge update the document to trigger the function.
+      await setDoc(docRef, entryData, { merge: true });
     } catch (error) {
-      console.error('Error triggering email:', error);
+      setError(`Hubo un problema al enviar el correo: ${error.message}`);
     }
   };
 
   const handleDownload = async () => {
-    if (downloadCount < 2) {
-      const element = document.querySelector("#ticketContainer");
-      await new Promise(r => setTimeout(r, 500)); // Wait to ensure styles are applied
-      html2canvas(element, {
-        scale: 4,
-        useCORS: true
-      }).then(canvas => {
+    try {
+      if (downloadCount < 2) {
+        const element = document.querySelector("#ticketContainer");
+        await new Promise(r => setTimeout(r, 500));
+        const canvas = await html2canvas(element, {
+          scale: 4,
+          useCORS: true
+        });
         const image = canvas.toDataURL("image/png");
         const link = document.createElement('a');
         link.href = image;
         link.download = `Ticket-${entry.firstName}-${entry.lastName}.png`;
         link.click();
         setDownloadCount(downloadCount + 1);
-      });
-    } else {
-      alert("El límite de descargas ha sido alcanzado.");
+      } else {
+        alert("Has alcanzado el límite de descargas. Si necesitas más ayuda, por favor contacta soporte.");
+      }
+    } catch (error) {
+      setError(`Ocurrió un problema al descargar tu ticket: ${error.message}`);
     }
   };
 
-  if (!hasPaid) {
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <ClipLoader size={50} color={"#4CAF50"} loading={loading} /> {/* Spinner */}
+        <p style={{ marginLeft: '20px', fontSize: '18px', color: '#4CAF50' }}>Estamos cargando tu información, por favor espera...</p>
+      </div>
+    );
+  }
+
+  if (error) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', padding: '20px', textAlign: 'center' }}>
         <div style={{ backgroundColor: '#ffebee', borderRadius: '8px', padding: '20px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
-          <h2 style={{ fontSize: '24px', color: '#d32f2f', marginBottom: '16px' }}>No ha realizado el pago</h2>
-          <p style={{ fontSize: '16px', color: '#c62828' }}>Por favor, complete el pago para poder acceder a su ticket.</p>
+          <h2 style={{ fontSize: '24px', color: '#d32f2f', marginBottom: '16px' }}>¡Ups! Algo salió mal</h2>
+          <p style={{ fontSize: '16px', color: '#c62828' }}>{error}</p>
+          <p style={{ fontSize: '16px', color: '#c62828' }}>Si sigues teniendo problemas, <a href="/personal-data" style={{ color: '#1565c0', textDecoration: 'underline' }}>haz clic aquí para volver a ingresar tus datos</a>.</p>
         </div>
       </div>
     );
   }
 
-  if (!entry) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Cargando...</div>;
+  if (!hasPaid) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', padding: '20px', textAlign: 'center' }}>
+        <div style={{ backgroundColor: '#fff3e0', borderRadius: '8px', padding: '20px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+          <h2 style={{ fontSize: '24px', color: '#ef6c00', marginBottom: '16px' }}>Pago no completado</h2>
+          <p style={{ fontSize: '16px', color: '#e65100' }}>Parece que no has completado el pago. No te preocupes, puedes hacerlo ahora mismo.</p>
+          <button
+            style={{ padding: '10px 20px', backgroundColor: '#4CAF50', color: 'white', fontSize: '16px', borderRadius: '5px', cursor: 'pointer', marginTop: '20px' }}
+            onClick={() => navigate(`/payment/${token}`)} // Redirige a la página de pago
+          >
+            Ir a la página de pago
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!entry) {
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Cargando...</div>;
+  }
 
   const getColorStyles = (academicLevel) => {
     return academicLevel === "Student" ? {
-      gradientStart: '#6cdb78', // Light green
-      gradientEnd: '#21da35',   // Medium green
-      textColor: '#23a03c',     // Dark green
-      highlightColor: '#e4fbe8' // Highlight green
+      gradientStart: '#6cdb78',
+      gradientEnd: '#21da35',
+      textColor: '#23a03c',
+      highlightColor: '#e4fbe8'
     } : {
-      gradientStart: '#98d6f3', // Light blue
-      gradientEnd: '#42A5F5',   // Medium blue
-      textColor: '#0D47A1',     // Dark blue
-      highlightColor: '#E3F2FD' // Highlight blue
+      gradientStart: '#98d6f3',
+      gradientEnd: '#42A5F5',
+      textColor: '#0D47A1',
+      highlightColor: '#E3F2FD'
     };
   };
 
@@ -143,7 +186,10 @@ const EntryQR = () => {
           <p style={{ fontSize: '12px', textAlign: 'center', color: '#9CA3AF', marginTop: '16px' }}>Un evento del Grupo CECAL SRL y la revista ENERGÍABolivia</p>
         </div>
         <div style={{ textAlign: 'center', marginTop: 'auto', padding: '20px' }}>
-          <button style={{ padding: '10px 20px', backgroundColor: '#4CAF50', color: 'white', fontSize: '16px', borderRadius: '5px', cursor: 'pointer' }} onClick={handleDownload}>
+          <button 
+            style={{ padding: '10px 20px', backgroundColor: '#4CAF50', color: 'white', fontSize: '16px', borderRadius: '5px', cursor: 'pointer' }} 
+            onClick={handleDownload}
+          >
             Descargar Ticket
           </button>
         </div>

@@ -14,6 +14,7 @@ import AgroToken from '../assets/Sponsors/Agro.svg';
 import backgroundImage from '../assets/images/PlantaBK.jpg';
 
 function Home() {
+    const token = localStorage.getItem('userToken');
     return (
         <div>
             <div className="relative h-[60vh] bg-cover bg-center rounded-b-3xl overflow-hidden" style={{ backgroundImage: `url(${backgroundImage})`, marginTop: '-44px' }}>
@@ -54,11 +55,13 @@ function Home() {
                             image={Step2}
                             step="Paso 2"
                             description="Paga la entrada mediante QR"
+                            link={`/payment/${token}`}
                         />
                         <StepCard 
                             image={Step3}
                             step="Paso 3"
                             description="Obtienes tu entrada!!"
+                            link={`/entry/${token}`}
                         />
                     </div>
                 </section>

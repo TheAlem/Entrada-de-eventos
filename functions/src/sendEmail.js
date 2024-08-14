@@ -1,10 +1,10 @@
-const functions = require("firebase-functions");
 const nodemailer = require("nodemailer");
 const PDFDocument = require("pdfkit");
 const QRCode = require("qrcode");
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
+const functions = require("firebase-functions");
 
 // Configuración de Nodemailer para enviar correos
 const transporter = nodemailer.createTransport({
@@ -18,10 +18,10 @@ const transporter = nodemailer.createTransport({
 });
 
 /**
- * Enviar correo electrónico con el PDF adjunto.
- * @param {string} email - Correo electrónico del destinatario.
- * @param {Buffer} pdfData - El archivo PDF generado.
- * @param {Object} data - Datos del cliente para personalizar el contenido del correo.
+ * Envía un correo electrónico con un archivo PDF adjunto.
+ * @param {string} email - La dirección de correo electrónico del destinatario.
+ * @param {Buffer} pdfData - Los datos del archivo PDF generado.
+ * @param {Object} data - Los datos del cliente para personalizar el contenido del correo electrónico.
  */
 function sendMail(email, pdfData, data) {
   const mailOptions = {
@@ -37,7 +37,7 @@ function sendMail(email, pdfData, data) {
         <p><strong>Detalles del evento:</strong></p>
         <ul>
           <li><strong>Fecha:</strong> 20 AGO 2024</li>
-          <li><strong>Hora:</strong> 11:00 AM</li>
+          <li><strong>Hora:</strong> 08:00 AM</li>
           <li><strong>Ubicación:</strong> Santa Cruz de la Sierra</li>
         </ul>
         <p>Esperamos verte allí!</p>
@@ -52,6 +52,8 @@ function sendMail(email, pdfData, data) {
     }],
   };
 
+  console.log(`Enviando correo a: ${email}`); // Log para ver a qué correo se envía
+
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
       console.log("Error al enviar correo:", error);
@@ -62,92 +64,99 @@ function sendMail(email, pdfData, data) {
 }
 
 /**
- * Genera y envía un PDF con el ticket cuando se crea un nuevo cliente.
- * @param {Object} snap - La instantánea del nuevo documento creado.
- * @param {Object} context - El contexto del evento.
+ * Función de Firebase que se activa al actualizar un documento en la colección "clientes".
+ * Envía un correo electrónico con un archivo PDF cuando el estado de pago se convierte en verdadero.
  */
 exports.sendEmail = functions.firestore.document("clientes/{clientId}")
-    .onCreate(async (snap, context) => {
-      const data = snap.data();
+    .onUpdate(async (change, context) => {
+      const data = change.after.data();
+      const previousData = change.before.data();
 
-      if (data.paymentStatus) {
+      // Solo enviar el correo si el estado de pago ha cambiado a verdadero
+      if (data.paymentStatus && !previousData.paymentStatus) {
         const pdfPath = path.join(os.tmpdir(), `${data.token}.pdf`);
         const pdfDoc = new PDFDocument({ size: "A4", margin: 50 });
         const stream = fs.createWriteStream(pdfPath);
         pdfDoc.pipe(stream);
 
-        // Generación del QR Code
-        const qrCodeDataURL = await QRCode.toDataURL(JSON.stringify(data));
+        try {
+          // Simplificar los datos que se codifican en el código QR
+          const qrData = {
+            token: data.token,
+            event: "Bolivia Blockchain Summit 2024",
+            email: data.email,
+          };
 
-        // Diseño del Ticket
+          // Generar el código QR con los datos simplificados
+          const qrCodeDataURL = await QRCode.toDataURL(JSON.stringify(qrData));
 
-        // Encabezado
-        pdfDoc.fillColor("#42A5F5")
-            .font("Helvetica-Bold")
-            .fontSize(30)
-            .text("BOLIVIA BLOCKCHAIN SUMMIT 2024", { align: "center" })
-            .moveDown(1);
+          // Contenido del PDF
+          pdfDoc.fillColor("#42A5F5")
+              .font("Helvetica-Bold")
+              .fontSize(30)
+              .text("BOLIVIA BLOCKCHAIN SUMMIT 2024", { align: "center" })
+              .moveDown(1);
 
-        // Subtítulo
-        pdfDoc.fontSize(20)
-            .text(data.academicLevel === "Student" ? "Entrada Estudiante" : "Entrada Profesional", { align: "center" })
-            .moveDown(0.5);
+          pdfDoc.fontSize(20)
+              .text(data.academicLevel === "Student" ? "Entrada Estudiante" : "Entrada Profesional",
+                  { align: "center" })
+              .moveDown(0.5);
 
-        // Línea divisoria
-        pdfDoc.strokeColor("#aaaaaa")
-            .lineWidth(1)
-            .moveTo(50, pdfDoc.y)
-            .lineTo(550, pdfDoc.y)
-            .stroke()
-            .moveDown(1);
+          pdfDoc.strokeColor("#aaaaaa")
+              .lineWidth(1)
+              .moveTo(50, pdfDoc.y)
+              .lineTo(550, pdfDoc.y)
+              .stroke()
+              .moveDown(1);
 
-        // Información personal
-        pdfDoc.fontSize(16)
-            .fillColor("#000000")
-            .text(`Nombre: ${data.firstName} ${data.lastName}`)
-            .text(`Email: ${data.email}`)
-            .text(`Teléfono: ${data.phone}`);
+          pdfDoc.fontSize(16)
+              .fillColor("#000000")
+              .text(`Nombre: ${data.firstName} ${data.lastName}`)
+              .text(`Email: ${data.email}`)
+              .text(`Teléfono: ${data.phone}`);
 
-        if (data.academicLevel === "Student") {
-          pdfDoc.text(`Universidad: ${data.universityName}`);
-        } else {
-          pdfDoc.text(`Profesión: ${data.profession}`);
+          if (data.academicLevel === "Student") {
+            pdfDoc.text(`Universidad: ${data.universityName}`);
+          } else {
+            pdfDoc.text(`Profesión: ${data.profession}`);
+          }
+
+          pdfDoc.moveDown(1);
+
+          pdfDoc.fontSize(18)
+              .fillColor("#0D47A1")
+              .text("Fecha: 20 AGO 2024", { align: "center" })
+              .text("Hora: 08:00 AM", { align: "center" })
+              .moveDown(0.5);
+
+          pdfDoc.fillColor("#23a03c")
+              .text("Ubicación: Santa Cruz de la Sierra", { align: "center" })
+              .moveDown(2);
+
+          pdfDoc.image(qrCodeDataURL, { fit: [150, 150], align: "center", valign: "center" });
+
+          pdfDoc.moveDown(3);
+          pdfDoc.fontSize(12)
+              .fillColor("#aaaaaa")
+              .text("Este ticket es personal e intransferible.", { align: "center" });
+
+          pdfDoc.end();
+
+          // Esperar a que el PDF termine de generarse
+          await new Promise((resolve, reject) => {
+            stream.on("finish", resolve);
+            stream.on("error", reject);
+          });
+
+          const pdfData = fs.readFileSync(pdfPath);
+          sendMail(data.email, pdfData, data);
+
+          // Limpiar el archivo temporal
+          fs.unlinkSync(pdfPath);
+        } catch (error) {
+          console.error("Error generando el PDF o enviando el correo:", error);
         }
-
-        pdfDoc.moveDown(1);
-
-        // Fecha y ubicación del evento
-        pdfDoc.fontSize(18)
-            .fillColor("#0D47A1")
-            .text("Fecha: 20 AGO 2024", { align: "center" })
-            .text("Hora: 11:00 AM", { align: "center" })
-            .moveDown(0.5);
-
-        pdfDoc.fillColor("#23a03c")
-            .text("Ubicación: Santa Cruz de la Sierra", { align: "center" })
-            .moveDown(2);
-
-        // Inserción del código QR
-        pdfDoc.image(qrCodeDataURL, { fit: [150, 150], align: "center", valign: "center" });
-
-        // Pie de página
-        pdfDoc.moveDown(3);
-        pdfDoc.fontSize(12)
-            .fillColor("#aaaaaa")
-            .text("Este ticket es personal e intransferible.", { align: "center" });
-
-        pdfDoc.end();
-
-        await new Promise((resolve, reject) => {
-          stream.on("finish", resolve);
-          stream.on("error", reject);
-        });
-
-        const pdfData = fs.readFileSync(pdfPath);
-        sendMail(data.email, pdfData, data);
-
-        fs.unlinkSync(pdfPath); // Elimina el archivo temporal después de enviarlo
       } else {
-        console.log("El pago no se ha completado. No se envía correo.");
+        console.log("El pago no se ha completado o no se ha actualizado. No se envía correo.");
       }
     });

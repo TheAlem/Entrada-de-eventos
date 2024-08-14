@@ -3,8 +3,8 @@ import axios from 'axios';
 const API_URL = '/api/ClientAuthentication.API/api/v1/auth/token';
 const GENERATE_QR_URL = '/api/QRSimple.API/api/v1/main/getQRWithImageAsync';
 
-const accountId = 'K103DKpylBrjkZzpkWtpew==';
-const authorizationId = 'RevistaBolivia123*';
+const accountId = 'O6ukBL3PHvs950IPlkmGHA==';
+const authorizationId = 'HvX+8+Gcd+c1pHj1qNHA5g==';
 
 let authToken = null;
 

@@ -1,16 +1,10 @@
 const functions = require("firebase-functions");
-const admin = require("firebase-admin");
 const cors = require("cors");
-
-const serviceAccount = require("../energiaboliviappandroid-firebase-adminsdk-9vht4-7eba2d155c.json");
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
+const { admin } = require("../firebaseAdmin");
 
 const corsHandler = cors({ origin: true, methods: ["POST"] });
 
-exports.verifyQr = functions.https.onRequest((req, res) => {
+const verifyQr = functions.https.onRequest(async (req, res) => {
   corsHandler(req, res, () => {
     if (req.method !== "POST") {
       return res.status(405).send({ message: "Método no permitido" });
@@ -60,3 +54,5 @@ async function handleQrVerification(token) {
     token: token,
   };
 }
+
+module.exports = verifyQr;
