@@ -55,7 +55,7 @@ function Navbar() {
                         Datos Personales
                         <span className={underlineClass}></span>
                     </Link>
-                    <Link to="/payment" className={linkClass}>
+                    <Link  to={`/payment/${token}`} className={linkClass}>
                         Pago
                         <span className={underlineClass}></span>
                     </Link>

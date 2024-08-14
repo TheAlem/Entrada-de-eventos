@@ -6,91 +6,87 @@ import 'tailwindcss/tailwind.css';
 
 const PersonalDataForm = () => {
   const [formData, setFormData] = useState({
-      firstName: '',
-      lastName: '',
-      birthDate: '',
-      country: '',
-      academicLevel: '',
-      companyName: '',
-      universityName: '',
-      profession: '',
-      email: '',
-      phone: '',
-      studentId: null,
+    firstName: '',
+    lastName: '',
+    birthDate: '',
+    country: '',
+    academicLevel: '',
+    companyName: '',
+    universityName: '',
+    profession: '',
+    email: '',
+    phone: '',
+    studentId: null,
   });
   const [message, setMessage] = useState('');
-  const { token, updateToken } = useToken(); // Obtén el token y updateToken desde el contexto
+  const { token, updateToken } = useToken(); // Obtén el token y la función para actualizarlo desde el contexto
 
   useEffect(() => {
-      if (token) {
-          const interval = setInterval(() => {
-              checkTicketStatus();
-          }, 5000); // Verifica el estado del ticket cada 5 segundos
+    if (token) {
+      const interval = setInterval(() => {
+        checkTicketStatus();
+      }, 5000); // Verifica el estado del ticket cada 5 segundos
 
-          return () => clearInterval(interval);
-      }
+      return () => clearInterval(interval);
+    }
   }, [token]);
 
   const generateAndStoreToken = () => {
-      const newToken = uuidv4();
-      localStorage.setItem('userToken', newToken);
-      updateToken(newToken); // Actualiza el token en el contexto
-      return newToken;
+    const newToken = uuidv4();
+    updateToken(newToken); // Actualiza el token en el contexto y en localStorage
+    return newToken;
   };
 
   const checkTicketStatus = () => {
-      listenToFirestoreUpdates((tickets) => {
-          const userTicket = tickets.find(ticket => ticket.token === token);
-          if (userTicket) {
-              if (userTicket.status === 'approved') {
-                  window.location.href = `/payment?level=${userTicket.academicLevel}`;
-              } else if (userTicket.status === 'completed') {
-                  window.location.href = `/entry`;
-                  clearSession();
-              }
-          }
-      });
+    listenToFirestoreUpdates((tickets) => {
+      const userTicket = tickets.find(ticket => ticket.token === token);
+      if (userTicket) {
+        if (userTicket.status === 'approved') {
+          window.location.href = `/payment/${token}?level=${userTicket.academicLevel}`;
+        } else if (userTicket.status === 'completed') {
+          window.location.href = `/entry/${token}`;
+          clearSession();
+        }
+      }
+    });
   };
 
   const clearSession = () => {
-      localStorage.removeItem('userToken');
-      updateToken(null); // Limpia el token en el contexto
+    updateToken(null); // Limpia el token en el contexto y en localStorage
   };
 
   const handleChange = (e) => {
-      const { name, value, files } = e.target;
-      if (name === "studentId") {
-          setFormData({
-              ...formData,
-              [name]: files[0],
-          });
-      } else {
-          setFormData({
-              ...formData,
-              [name]: value,
-          });
-      }
+    const { name, value, files } = e.target;
+    if (name === "studentId") {
+      setFormData({
+        ...formData,
+        [name]: files[0],
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value,
+      });
+    }
   };
 
   const handleSubmit = async (e) => {
-      e.preventDefault();
-      const userToken = token || generateAndStoreToken();
-      const formDataWithToken = { ...formData, token: userToken };
+    e.preventDefault();
+    const userToken = token || generateAndStoreToken(); // Usa el token existente o genera uno nuevo
+    const formDataWithToken = { ...formData, token: userToken };
 
-      const result = await saveDataToFirestore(formDataWithToken);
-      if (result.success) {
-          // Actualiza el token en el TokenContext para asegurar que esté disponible
-          updateToken(userToken);
-
-          if (formData.academicLevel === 'Student') {
-              setMessage('Tus datos están en revisión. Serás redirigido una vez sean aprobados.');
-          } else {
-              window.location.href = `/payment?level=${formData.academicLevel}`;
-          }
+    const result = await saveDataToFirestore(formDataWithToken);
+    if (result.success) {
+      if (formData.academicLevel === 'Student') {
+        setMessage('Tus datos están en revisión. Serás redirigido una vez sean aprobados.');
       } else {
-          alert('Error al enviar los datos');
+        window.location.href = `/payment/${userToken}?level=${formData.academicLevel}`;
       }
+    } else {
+      alert('Error al enviar los datos');
+    }
   };
+
 
     return (
       <div className="min-h-screen flex items-center justify-center">
