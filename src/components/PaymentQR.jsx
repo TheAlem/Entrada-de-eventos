@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { generateQR } from '../Firebase/Api/api';
 import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
 import { listenToFirestoreUpdates } from '../Firebase/PersonalData/BkForm';
+import ClipLoader from 'react-spinners/ClipLoader';
 import 'tailwindcss/tailwind.css';
 
 const PaymentQR = () => {
@@ -19,9 +20,9 @@ const PaymentQR = () => {
 
       if (docSnapshot.exists() && docSnapshot.data().paymentStatus) {
         navigate(`/entry/${clientToken}`);
-        return true; // Return true if payment is already completed
+        return true;
       }
-      return false; // Return false if payment is not completed
+      return false;
     } catch (err) {
       setError('Error al verificar el estado de pago.');
       console.error('Error en checkExistingPayment:', err);
@@ -39,13 +40,13 @@ const PaymentQR = () => {
         gloss: "Pago Entrada Evento",
         amount: paymentAmount,
         singleUse: "true",
-        expirationDate: "2024-09-01", 
+        expirationDate: "2024-09-01",
         additionalData: `Datos Adicionales - ${new Date().toISOString()}`
-      };      
+      };
       const data = await generateQR(paymentDetails);
       setQrData(data);
       await savePaymentInfo(data, clientData.token);
-      checkPaymentStatus(clientData.token); // Revisa el estado del pago
+      checkPaymentStatus(clientData.token);
     } catch (err) {
       setError(`Error al generar el QR: ${err.message}`);
     } finally {
@@ -115,22 +116,30 @@ const PaymentQR = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
-      <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
-        <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">QR de Pago</h2>
+      <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full">
+        <h2 className="text-2xl font-extrabold text-gray-800 mb-6 text-center">QR de Pago</h2>
         {loading ? (
-          <div className="text-lg font-semibold text-gray-700 text-center">Generando QR...</div>
+          <div className="flex flex-col items-center">
+            <ClipLoader size={50} color={"#4CAF50"} loading={loading} />
+            <p className="mt-4 text-lg font-medium text-gray-700">Generando QR...</p>
+          </div>
         ) : (
           <>
             {qrData && qrData.qr ? (
               <div className="mt-8 flex justify-center">
-                <img src={`data:image/png;base64,${qrData.qr}`} alt="QR Code" className="w-64 h-64 object-contain" />
+                <img src={`data:image/png;base64,${qrData.qr}`} alt="QR Code" className="w-64 h-64 object-contain border-2 border-gray-300 rounded-lg shadow-md" />
               </div>
             ) : (
-              <div className="text-lg font-semibold text-gray-700 text-center">No se pudo generar el QR</div>
+              <div className="text-lg font-medium text-gray-700 text-center">No se pudo generar el QR</div>
             )}
             {error && (
-              <div className="mt-4 bg-red-100 text-red-800 p-4 rounded-lg text-center">
+              <div className="mt-4 bg-red-50 border-l-4 border-red-400 text-red-800 p-4 rounded-lg text-center">
                 {error}
+                <p className="mt-4">
+                  <Link to="/personal-data" className="text-green-700 hover:text-gren-900 underline">
+                    Haz clic aquí para volver al formulario
+                  </Link>
+                </p>
               </div>
             )}
             <div className="flex flex-col mt-6 space-y-4">

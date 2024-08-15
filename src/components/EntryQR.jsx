@@ -90,7 +90,7 @@ const EntryQR = () => {
         <div style={{ backgroundColor: '#ffebee', borderRadius: '8px', padding: '20px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
           <h2 style={{ fontSize: '24px', color: '#d32f2f', marginBottom: '16px' }}>¡Ups! Algo salió mal</h2>
           <p style={{ fontSize: '16px', color: '#c62828' }}>{error}</p>
-          <p style={{ fontSize: '16px', color: '#c62828' }}>Si sigues teniendo problemas, <a href="/personal-data" style={{ color: '#1565c0', textDecoration: 'underline' }}>haz clic aquí para volver a ingresar tus datos</a>.</p>
+          <p style={{ fontSize: '16px', color: '#c62828' }}>Si sigues teniendo problemas, <a href="/personal-data" style={{ color: '#183c33', textDecoration: 'underline' }}>haz clic aquí para volver a ingresar tus datos</a>.</p>
         </div>
       </div>
     );

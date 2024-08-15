@@ -17,42 +17,52 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-/**
- * Envía un correo electrónico con un archivo PDF adjunto.
- * @param {string} email - La dirección de correo electrónico del destinatario.
- * @param {Buffer} pdfData - Los datos del archivo PDF generado.
- * @param {Object} data - Los datos del cliente para personalizar el contenido del correo electrónico.
- */
 function sendMail(email, pdfData, data) {
   const mailOptions = {
     from: "boliviablockchainsummit@gmail.com",
     to: email,
-    subject: "Tu entrada para el Blockchain Summit",
+    subject: "Tu entrada para el Bolivia Blockchain Summit 2024",
     html: `
-      <div style="font-family: Arial, sans-serif; color: #333;">
-        <h2 style="color: #42A5F5;">BOLIVIA BLOCKCHAIN SUMMIT</h2>
-        <p>Querido(a) ${data.firstName},</p>
-        <p>Gracias por registrarte en el Bolivia Blockchain Summit 2024.
-          Adjunta encontrarás tu entrada en formato PDF.</p>
-        <p><strong>Detalles del evento:</strong></p>
-        <ul>
-          <li><strong>Fecha:</strong> 20 AGO 2024</li>
-          <li><strong>Hora:</strong> 08:00 AM</li>
-          <li><strong>Ubicación:</strong> Santa Cruz de la Sierra</li>
-        </ul>
-        <p>Esperamos verte allí!</p>
-        <p>Saludos cordiales,</p>
-        <p>Equipo de Bolivia Blockchain Summit</p>
-      </div>
+      <!DOCTYPE html>
+      <html lang="es">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Bolivia Blockchain Summit 2024</title>
+      </head>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <header style="background-color: #42A5F5; padding: 20px; text-align: center; color: white;">
+          <h1 style="margin: 0;">BOLIVIA BLOCKCHAIN SUMMIT 2024</h1>
+        </header>
+        <main style="padding: 20px;">
+          <p style="font-size: 18px;">Estimado/a <strong>${data.firstName},</strong></p>
+          <p>Gracias por registrarte en el Bolivia Blockchain Summit 2024. Adjunta encontrarás tu entrada en formato PDF.</p>
+          <div style="background-color: #f0f0f0; border-left: 4px solid #42A5F5; padding: 15px; margin: 20px 0;">
+            <h2 style="color: #42A5F5; margin-top: 0;">Detalles del evento:</h2>
+            <ul style="list-style-type: none; padding-left: 0;">
+              <li><strong>Fecha:</strong> 20 AGO 2024</li>
+              <li><strong>Hora:</strong> 08:00 AM</li>
+              <li><strong>Ubicación:</strong> Santa Cruz de la Sierra</li>
+            </ul>
+          </div>
+          <p>No olvides llevar tu entrada impresa o en tu dispositivo móvil el día del evento.</p>
+          <p>¡Esperamos verte allí!</p>
+        </main>
+        <footer style="background-color: #f0f0f0; padding: 10px; text-align: center; font-size: 14px;">
+          <p style="margin: 0;">Saludos cordiales,</p>
+          <p style="margin: 5px 0;"><strong>Equipo de Bolivia Blockchain Summit</strong></p>
+        </footer>
+      </body>
+      </html>
     `,
     attachments: [{
-      filename: "EntradaBlockchainSummit.pdf",
+      filename: "EntradaBoliviaBlockchainSummit2024.pdf",
       content: pdfData,
       contentType: "application/pdf",
     }],
   };
 
-  console.log(`Enviando correo a: ${email}`); // Log para ver a qué correo se envía
+  console.log(`Enviando correo a: ${email}`);
 
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
@@ -63,16 +73,11 @@ function sendMail(email, pdfData, data) {
   });
 }
 
-/**
- * Función de Firebase que se activa al actualizar un documento en la colección "clientes".
- * Envía un correo electrónico con un archivo PDF cuando el estado de pago se convierte en verdadero.
- */
 exports.sendEmail = functions.firestore.document("clientes/{clientId}")
     .onUpdate(async (change, context) => {
       const data = change.after.data();
       const previousData = change.before.data();
 
-      // Solo enviar el correo si el estado de pago ha cambiado a verdadero
       if (data.paymentStatus && !previousData.paymentStatus) {
         const pdfPath = path.join(os.tmpdir(), `${data.token}.pdf`);
         const pdfDoc = new PDFDocument({ size: "A4", margin: 50 });
@@ -80,69 +85,77 @@ exports.sendEmail = functions.firestore.document("clientes/{clientId}")
         pdfDoc.pipe(stream);
 
         try {
-          // Simplificar los datos que se codifican en el código QR
           const qrData = {
             token: data.token,
             event: "Bolivia Blockchain Summit 2024",
             email: data.email,
           };
 
-          // Generar el código QR con los datos simplificados
           const qrCodeDataURL = await QRCode.toDataURL(JSON.stringify(qrData));
 
-          // Contenido del PDF
-          pdfDoc.fillColor("#42A5F5")
-              .font("Helvetica-Bold")
-              .fontSize(30)
-              .text("BOLIVIA BLOCKCHAIN SUMMIT 2024", { align: "center" })
-              .moveDown(1);
+          // Fondo y diseño del PDF
+          pdfDoc.rect(0, 0, pdfDoc.page.width, pdfDoc.page.height).fill("#f0f0f0");
+          pdfDoc.rect(0, 0, pdfDoc.page.width, 150).fill("#42A5F5");
 
-          pdfDoc.fontSize(20)
-              .text(data.academicLevel === "Student" ? "Entrada Estudiante" : "Entrada Profesional",
-                  { align: "center" })
+          // Título del evento
+          pdfDoc.fillColor("#FFFFFF")
+              .font("Helvetica-Bold")
+              .fontSize(32)
+              .text("BOLIVIA BLOCKCHAIN SUMMIT 2024", 50, 50, { width: 500, align: "center" })
               .moveDown(0.5);
 
-          pdfDoc.strokeColor("#aaaaaa")
-              .lineWidth(1)
-              .moveTo(50, pdfDoc.y)
-              .lineTo(550, pdfDoc.y)
-              .stroke()
+          // Tipo de entrada
+          pdfDoc.fontSize(24)
+              .text(data.academicLevel === "Student" ? "Entrada Estudiante" : "Entrada Profesional",
+                  { align: "center" })
               .moveDown(1);
 
-          pdfDoc.fontSize(16)
-              .fillColor("#000000")
-              .text(`Nombre: ${data.firstName} ${data.lastName}`)
+          // Información del asistente
+          pdfDoc.fillColor("#333333")
+              .font("Helvetica")
+              .fontSize(16)
+              .text(`Nombre: ${data.firstName} ${data.lastName}`, 50, 180)
               .text(`Email: ${data.email}`)
               .text(`Teléfono: ${data.phone}`);
 
-          if (data.academicLevel === "Student") {
-            pdfDoc.text(`Universidad: ${data.universityName}`);
-          } else {
-            pdfDoc.text(`Profesión: ${data.profession}`);
-          }
-
           pdfDoc.moveDown(1);
 
-          pdfDoc.fontSize(18)
+          // Detalles del evento
+          pdfDoc.font("Helvetica-Bold")
+              .fontSize(18)
               .fillColor("#0D47A1")
-              .text("Fecha: 20 AGO 2024", { align: "center" })
-              .text("Hora: 08:00 AM", { align: "center" })
+              .text("Detalles del Evento:", 50, 300)
               .moveDown(0.5);
 
-          pdfDoc.fillColor("#23a03c")
-              .text("Ubicación: Santa Cruz de la Sierra", { align: "center" })
-              .moveDown(2);
+          pdfDoc.font("Helvetica")
+              .fontSize(16)
+              .text("Fecha: 20 AGO 2024")
+              .text("Hora: 08:00 AM")
+              .text("Ubicación: Santa Cruz de la Sierra")
+              .moveDown(1);
 
-          pdfDoc.image(qrCodeDataURL, { fit: [150, 150], align: "center", valign: "center" });
+          // Código QR
+          pdfDoc.rect(350, 180, 190, 190).fill("#FFFFFF").stroke();
+          pdfDoc.image(qrCodeDataURL, 360, 190, { fit: [170, 170] });
 
-          pdfDoc.moveDown(3);
-          pdfDoc.fontSize(12)
-              .fillColor("#aaaaaa")
-              .text("Este ticket es personal e intransferible.", { align: "center" });
+          // Número de ticket
+          pdfDoc.fontSize(14)
+              .fillColor("#333333")
+              .text(`Número de Ticket: ${data.token}`, 350, 380, { width: 190, align: "center" });
+
+          // Nota de pie
+          pdfDoc.fontSize(10)
+              .fillColor("#666666")
+              .text("Este ticket es personal e intransferible.", 50, 500, { align: "center" });
+
+          // Línea de corte
+          pdfDoc.moveTo(50, 520)
+              .lineTo(550, 520)
+              .dash(5, { space: 5 })
+              .stroke();
 
           pdfDoc.end();
 
-          // Esperar a que el PDF termine de generarse
           await new Promise((resolve, reject) => {
             stream.on("finish", resolve);
             stream.on("error", reject);
@@ -151,7 +164,6 @@ exports.sendEmail = functions.firestore.document("clientes/{clientId}")
           const pdfData = fs.readFileSync(pdfPath);
           sendMail(data.email, pdfData, data);
 
-          // Limpiar el archivo temporal
           fs.unlinkSync(pdfPath);
         } catch (error) {
           console.error("Error generando el PDF o enviando el correo:", error);

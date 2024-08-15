@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { saveDataToFirestore, listenToFirestoreUpdates } from '../Firebase/PersonalData/BkForm'; 
 import { useToken } from '../Firebase/context/TokenContext';
+import ClipLoader from 'react-spinners/ClipLoader';
 import 'tailwindcss/tailwind.css';
 
 const PersonalDataForm = () => {
@@ -18,14 +19,15 @@ const PersonalDataForm = () => {
     phone: '',
     studentId: null,
   });
+  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-  const { token, updateToken } = useToken(); // Obtén el token y la función para actualizarlo desde el contexto
+  const { token, updateToken } = useToken();
 
   useEffect(() => {
     if (token) {
       const interval = setInterval(() => {
         checkTicketStatus();
-      }, 5000); // Verifica el estado del ticket cada 5 segundos
+      }, 5000);
 
       return () => clearInterval(interval);
     }
@@ -33,7 +35,7 @@ const PersonalDataForm = () => {
 
   const generateAndStoreToken = () => {
     const newToken = uuidv4();
-    updateToken(newToken); // Actualiza el token en el contexto y en localStorage
+    updateToken(newToken);
     return newToken;
   };
 
@@ -52,7 +54,7 @@ const PersonalDataForm = () => {
   };
 
   const clearSession = () => {
-    updateToken(null); // Limpia el token en el contexto y en localStorage
+    updateToken(null);
   };
 
   const handleChange = (e) => {
@@ -72,10 +74,12 @@ const PersonalDataForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const userToken = token || generateAndStoreToken(); // Usa el token existente o genera uno nuevo
+    setLoading(true);
+    const userToken = token || generateAndStoreToken();
     const formDataWithToken = { ...formData, token: userToken };
 
     const result = await saveDataToFirestore(formDataWithToken);
+    setLoading(false);
     if (result.success) {
       if (formData.academicLevel === 'Student') {
         setMessage('Tus datos están en revisión. Serás redirigido una vez sean aprobados.');
@@ -87,206 +91,205 @@ const PersonalDataForm = () => {
     }
   };
 
-
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-2xl">
-          <h2 className="text-3xl font-extrabold text-gray-800 mb-8 text-center">Datos Personales</h2>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-3xl">
+        <h2 className="text-4xl font-bold text-gray-800 mb-8 text-center">Datos Personales</h2>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="relative">
+              <input
+                type="text"
+                name="firstName"
+                id="firstName"
+                value={formData.firstName}
+                onChange={handleChange}
+                className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 placeholder-transparent pt-4 pb-1 transition-colors duration-300 ease-in-out"
+                placeholder="Nombre"
+                required
+                pattern="[A-Za-z\s]+"
+                title="Solo se permiten letras y espacios"
+              />
+              <label htmlFor="firstName" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Nombre</label>
+            </div>
+            <div className="relative">
+              <input
+                type="text"
+                name="lastName"
+                id="lastName"
+                value={formData.lastName}
+                onChange={handleChange}
+                className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 placeholder-transparent pt-4 pb-1 transition-colors duration-300 ease-in-out"
+                placeholder="Apellidos"
+                required
+                pattern="[A-Za-z\s]+"
+                title="Solo se permiten letras y espacios"
+              />
+              <label htmlFor="lastName" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Apellidos</label>
+            </div>
+          </div>
+          <div className="relative">
+            <input
+              type="date"
+              name="birthDate"
+              id="birthDate"
+              value={formData.birthDate}
+              onChange={handleChange}
+              className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 placeholder-transparent pt-4 pb-1 transition-colors duration-300 ease-in-out"
+              required
+              min="1900-01-01"
+              max={new Date().toISOString().split("T")[0]}
+            />
+            <label htmlFor="birthDate" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Fecha de Nacimiento</label>
+          </div>
+          <div className="relative">
+            <select
+              name="country"
+              id="country"
+              value={formData.country}
+              onChange={handleChange}
+              className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 bg-transparent pt-4 pb-1 transition-colors duration-300 ease-in-out"
+              required
+            >
+              <option value="" disabled>Elija una opción</option>
+              <option value="Bolivia">Bolivia +591</option>
+              <option value="Argentina">Argentina +54</option>
+              <option value="Chile">Chile +56</option>
+              <option value="Brasil">Brasil +55</option>
+              <option value="Colombia">Colombia +57</option>
+              <option value="Peru">Perú +51</option>
+              <option value="Mexico">México +52</option>
+              <option value="United States">Estados Unidos +1</option>
+            </select>
+            <label htmlFor="country" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">País</label>
+          </div>
+          <div className="relative">
+            <select
+              name="academicLevel"
+              id="academicLevel"
+              value={formData.academicLevel}
+              onChange={handleChange}
+              className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 bg-transparent pt-4 pb-1 transition-colors duration-300 ease-in-out"
+              required
+            >
+              <option value="" disabled>Elija una opción</option>
+              <option value="Student">Estudiante Universitario</option>
+              <option value="Professional">Profesional</option>
+            </select>
+            <label htmlFor="academicLevel" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Nivel Académico</label>
+          </div>
+          {formData.academicLevel === 'Professional' && (
+            <>
               <div className="relative">
                 <input
                   type="text"
-                  name="firstName"
-                  id="firstName"
-                  value={formData.firstName}
+                  name="companyName"
+                  id="companyName"
+                  value={formData.companyName}
                   onChange={handleChange}
-                  className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 placeholder-transparent pt-4 pb-1"
-                  placeholder="Nombre"
+                  className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 placeholder-transparent pt-4 pb-1 transition-colors duration-300 ease-in-out"
+                  placeholder="Nombre de la Empresa"
                   required
                   pattern="[A-Za-z\s]+"
                   title="Solo se permiten letras y espacios"
                 />
-                <label htmlFor="firstName" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Nombre</label>
+                <label htmlFor="companyName" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Nombre de la Empresa</label>
               </div>
               <div className="relative">
                 <input
                   type="text"
-                  name="lastName"
-                  id="lastName"
-                  value={formData.lastName}
+                  name="profession"
+                  id="profession"
+                  value={formData.profession}
                   onChange={handleChange}
-                  className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 placeholder-transparent pt-4 pb-1"
-                  placeholder="Apellidos"
+                  className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 placeholder-transparent pt-4 pb-1 transition-colors duration-300 ease-in-out"
+                  placeholder="Profesión"
                   required
                   pattern="[A-Za-z\s]+"
                   title="Solo se permiten letras y espacios"
                 />
-                <label htmlFor="lastName" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Apellidos</label>
+                <label htmlFor="profession" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Profesión</label>
               </div>
-            </div>
-            <div className="relative">
-              <input
-                type="date"
-                name="birthDate"
-                id="birthDate"
-                value={formData.birthDate}
-                onChange={handleChange}
-                className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 placeholder-transparent pt-4 pb-1"
-                required
-                min="1900-01-01"
-                max={new Date().toISOString().split("T")[0]}
-              />
-              <label htmlFor="birthDate" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Fecha de Nacimiento</label>
-            </div>
-            <div className="relative">
-              <select
-                name="country"
-                id="country"
-                value={formData.country}
-                onChange={handleChange}
-                className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 bg-transparent pt-4 pb-1"
-                required
-              >
-                <option value="" disabled>Elija una opción</option>
-                <option value="Bolivia">Bolivia +591</option>
-                <option value="Argentina">Argentina +54</option>
-                <option value="Chile">Chile +56</option>
-                <option value="Brasil">Brasil +55</option>
-                <option value="Colombia">Colombia +57</option>
-                <option value="Peru">Perú +51</option>
-                <option value="Mexico">México +52</option>
-                <option value="United States">Estados Unidos +1</option>
-              </select>
-              <label htmlFor="country" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">País</label>
-            </div>
-            <div className="relative">
-              <select
-                name="academicLevel"
-                id="academicLevel"
-                value={formData.academicLevel}
-                onChange={handleChange}
-                className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 bg-transparent pt-4 pb-1"
-                required
-              >
-                <option value="" disabled>Elija una opción</option>
-                <option value="Student">Estudiante Universitario</option>
-                <option value="Professional">Profesional</option>
-              </select>
-              <label htmlFor="academicLevel" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Nivel Académico</label>
-            </div>
-            {formData.academicLevel === 'Professional' && (
-              <>
-                <div className="relative">
-                  <input
-                    type="text"
-                    name="companyName"
-                    id="companyName"
-                    value={formData.companyName}
-                    onChange={handleChange}
-                    className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 placeholder-transparent pt-4 pb-1"
-                    placeholder="Nombre de la Empresa"
-                    required
-                    pattern="[A-Za-z\s]+"
-                    title="Solo se permiten letras y espacios"
-                  />
-                  <label htmlFor="companyName" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Nombre de la Empresa</label>
-                </div>
-                <div className="relative">
-                  <input
-                    type="text"
-                    name="profession"
-                    id="profession"
-                    value={formData.profession}
-                    onChange={handleChange}
-                    className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 placeholder-transparent pt-4 pb-1"
-                    placeholder="Profesión"
-                    required
-                    pattern="[A-Za-z\s]+"
-                    title="Solo se permiten letras y espacios"
-                  />
-                  <label htmlFor="profession" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Profesión</label>
-                </div>
-              </>
-            )}
-            {formData.academicLevel === 'Student' && (
-              <>
-                <div className="relative">
-                  <input
-                    type="text"
-                    name="universityName"
-                    id="universityName"
-                    value={formData.universityName}
-                    onChange={handleChange}
-                    className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 placeholder-transparent pt-4 pb-1"
-                    placeholder="Nombre de la Universidad"
-                    required
-                    pattern="[A-Za-z\s]+"
-                    title="Solo se permiten letras y espacios"
-                  />
-                  <label htmlFor="universityName" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Nombre de la Universidad</label>
-                </div>
-                <div className="relative">
-                  <input
-                    type="file"
-                    name="studentId"
-                    id="studentId"
-                    accept="image/*"
-                    onChange={handleChange}
-                    className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 pt-4 pb-1"
-                    required
-                  />
-                  <label htmlFor="studentId" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Subir Carnet de Estudiante</label>
-                </div>
-              </>
-            )}
-            <div className="relative">
-              <input
-                type="email"
-                name="email"
-                id="email"
-                value={formData.email}
-                onChange={handleChange}
-                className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 placeholder-transparent pt-4 pb-1"
-                placeholder="Correo Electrónico"
-                required
-                pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
-                title="Ingrese un correo electrónico válido"
-              />
-              <label htmlFor="email" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Correo Electrónico</label>
-            </div>
-            <div className="relative">
-              <input
-                type="tel"
-                name="phone"
-                id="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 placeholder-transparent pt-4 pb-1"
-                placeholder="Nº de Teléfono/Celular"
-                required
-                pattern="\d{8,10}"
-                title="Debe tener 8 o 10 dígitos"
-              />
-              <label htmlFor="phone" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Nº de Teléfono/Celular</label>
-            </div>
-            <div className="flex justify-end pt-6">
-              <button
-                type="submit"
-                className="px-6 py-3 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition-all duration-300 ease-in-out transform hover:scale-105"
-              >
-                Enviar
-              </button>
-            </div>
-          </form>
-          {message && (
-            <div className="mt-8 bg-green-100 text-green-800 p-4 rounded-lg">
-              {message}
-            </div>
+            </>
           )}
-        </div>
+          {formData.academicLevel === 'Student' && (
+            <>
+              <div className="relative">
+                <input
+                  type="text"
+                  name="universityName"
+                  id="universityName"
+                  value={formData.universityName}
+                  onChange={handleChange}
+                  className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 placeholder-transparent pt-4 pb-1 transition-colors duration-300 ease-in-out"
+                  placeholder="Nombre de la Universidad"
+                  required
+                  pattern="[A-Za-z\s]+"
+                  title="Solo se permiten letras y espacios"
+                />
+                <label htmlFor="universityName" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Nombre de la Universidad</label>
+              </div>
+              <div className="relative">
+                <input
+                  type="file"
+                  name="studentId"
+                  id="studentId"
+                  accept="image/*"
+                  onChange={handleChange}
+                  className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 pt-4 pb-1 transition-colors duration-300 ease-in-out"
+                  required
+                />
+                <label htmlFor="studentId" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Subir Carnet de Estudiante</label>
+              </div>
+            </>
+          )}
+          <div className="relative">
+            <input
+              type="email"
+              name="email"
+              id="email"
+              value={formData.email}
+              onChange={handleChange}
+              className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 placeholder-transparent pt-4 pb-1 transition-colors duration-300 ease-in-out"
+              placeholder="Correo Electrónico"
+              required
+              pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+              title="Ingrese un correo electrónico válido"
+            />
+            <label htmlFor="email" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Correo Electrónico</label>
+          </div>
+          <div className="relative">
+            <input
+              type="tel"
+              name="phone"
+              id="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 placeholder-transparent pt-4 pb-1 transition-colors duration-300 ease-in-out"
+              placeholder="Nº de Teléfono/Celular"
+              required
+              pattern="\d{8,10}"
+              title="Debe tener 8 o 10 dígitos"
+            />
+            <label htmlFor="phone" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Nº de Teléfono/Celular</label>
+          </div>
+          <div className="flex justify-end pt-6">
+            <button
+              type="submit"
+              className="px-6 py-3 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition-all duration-300 ease-in-out transform hover:scale-105"
+            >
+              {loading ? <ClipLoader size={20} color="#ffffff" /> : 'Enviar'}
+            </button>
+          </div>
+        </form>
+        {message && (
+          <div className="mt-8 bg-green-100 text-green-800 p-4 rounded-lg">
+            {message}
+          </div>
+        )}
       </div>
-    );
-  }
+    </div>
+  );
+};
 
-  export default PersonalDataForm;
+export default PersonalDataForm;
