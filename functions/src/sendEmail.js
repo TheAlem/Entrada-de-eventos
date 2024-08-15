@@ -5,6 +5,8 @@ const fs = require("fs");
 const path = require("path");
 const os = require("os");
 const functions = require("firebase-functions");
+const { admin, db } = require("../firebaseAdmin");
+
 
 // Configuración de Nodemailer para enviar correos
 const transporter = nodemailer.createTransport({
@@ -29,28 +31,83 @@ function sendMail(email, pdfData, data) {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Bolivia Blockchain Summit 2024</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+          }
+          header {
+            background-color: #183c33;
+            padding: 20px;
+            text-align: center;
+            color: white;
+          }
+          header h1 {
+            margin: 0;
+            font-size: 24px;
+          }
+          main {
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          }
+          .event-details {
+            background-color: #e0f0ed;
+            border-left: 4px solid #183c33;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+          }
+          .event-details h2 {
+            color: #183c33;
+            margin-top: 0;
+            font-size: 18px;
+          }
+          .event-details ul {
+            list-style-type: none;
+            padding-left: 0;
+            margin: 0;
+          }
+          .event-details ul li {
+            margin-bottom: 8px;
+          }
+          footer {
+            background-color: #f4f4f4;
+            padding: 10px;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            border-top: 1px solid #ddd;
+          }
+        </style>
       </head>
-      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <header style="background-color: #42A5F5; padding: 20px; text-align: center; color: white;">
-          <h1 style="margin: 0;">BOLIVIA BLOCKCHAIN SUMMIT 2024</h1>
+      <body>
+        <header>
+          <h1>BOLIVIA BLOCKCHAIN SUMMIT 2024</h1>
         </header>
-        <main style="padding: 20px;">
+        <main>
           <p style="font-size: 18px;">Estimado/a <strong>${data.firstName},</strong></p>
           <p>Gracias por registrarte en el Bolivia Blockchain Summit 2024. Adjunta encontrarás tu entrada en formato PDF.</p>
-          <div style="background-color: #f0f0f0; border-left: 4px solid #42A5F5; padding: 15px; margin: 20px 0;">
-            <h2 style="color: #42A5F5; margin-top: 0;">Detalles del evento:</h2>
-            <ul style="list-style-type: none; padding-left: 0;">
+          <div class="event-details">
+            <h2>Detalles del evento:</h2>
+            <ul>
               <li><strong>Fecha:</strong> 20 AGO 2024</li>
-              <li><strong>Hora:</strong> 08:00 AM</li>
+              <li><strong>Hora:</strong> 11:00 AM</li>
               <li><strong>Ubicación:</strong> Santa Cruz de la Sierra</li>
             </ul>
           </div>
           <p>No olvides llevar tu entrada impresa o en tu dispositivo móvil el día del evento.</p>
           <p>¡Esperamos verte allí!</p>
         </main>
-        <footer style="background-color: #f0f0f0; padding: 10px; text-align: center; font-size: 14px;">
-          <p style="margin: 0;">Saludos cordiales,</p>
-          <p style="margin: 5px 0;"><strong>Equipo de Bolivia Blockchain Summit</strong></p>
+        <footer>
+          <p>Saludos cordiales,</p>
+          <p><strong>Equipo de Bolivia Blockchain Summit</strong></p>
         </footer>
       </body>
       </html>
@@ -79,8 +136,20 @@ exports.sendEmail = functions.firestore.document("clientes/{clientId}")
       const previousData = change.before.data();
 
       if (data.paymentStatus && !previousData.paymentStatus) {
+        const clientId = context.params.clientId;
+        const clientRef = db.collection("clientes").doc(clientId);
+
+        const lastEmailSent = data.lastEmailSent ? data.lastEmailSent.toDate() : null;
+        const now = new Date();
+        const oneHourAgo = new Date(now.getTime() - (60 * 60 * 1000)); // Hace una hora
+
+        if (lastEmailSent && lastEmailSent > oneHourAgo) {
+          console.log("Correo ya enviado hace menos de una hora. No se envía nuevamente.");
+          return null;
+        }
+
         const pdfPath = path.join(os.tmpdir(), `${data.token}.pdf`);
-        const pdfDoc = new PDFDocument({ size: "A4", margin: 50 });
+        const pdfDoc = new PDFDocument({ size: [360, 640], margin: 10 }); // Tamaño personalizado
         const stream = fs.createWriteStream(pdfPath);
         pdfDoc.pipe(stream);
 
@@ -94,65 +163,61 @@ exports.sendEmail = functions.firestore.document("clientes/{clientId}")
           const qrCodeDataURL = await QRCode.toDataURL(JSON.stringify(qrData));
 
           // Fondo y diseño del PDF
-          pdfDoc.rect(0, 0, pdfDoc.page.width, pdfDoc.page.height).fill("#f0f0f0");
-          pdfDoc.rect(0, 0, pdfDoc.page.width, 150).fill("#42A5F5");
+          pdfDoc.rect(0, 0, pdfDoc.page.width, pdfDoc.page.height).fill("#FFFFFF");
 
-          // Título del evento
+          // Header con el título del evento
+          pdfDoc.rect(0, 0, pdfDoc.page.width, 80).fill("#183c33");
           pdfDoc.fillColor("#FFFFFF")
               .font("Helvetica-Bold")
-              .fontSize(32)
-              .text("BOLIVIA BLOCKCHAIN SUMMIT 2024", 50, 50, { width: 500, align: "center" })
-              .moveDown(0.5);
+              .fontSize(22)
+              .text("BOLIVIA BLOCKCHAIN", { align: "center", valign: "center" })
+              .moveDown(0.5)
+              .text("SUMMIT 2024", { align: "center" });
 
           // Tipo de entrada
-          pdfDoc.fontSize(24)
-              .text(data.academicLevel === "Student" ? "Entrada Estudiante" : "Entrada Profesional",
-                  { align: "center" })
-              .moveDown(1);
-
-          // Información del asistente
-          pdfDoc.fillColor("#333333")
-              .font("Helvetica")
-              .fontSize(16)
-              .text(`Nombre: ${data.firstName} ${data.lastName}`, 50, 180)
-              .text(`Email: ${data.email}`)
-              .text(`Teléfono: ${data.phone}`);
+          pdfDoc.rect(pdfDoc.page.width - 100, 20, 80, 20).fill("#42A5F5");
+          pdfDoc.fillColor("#FFFFFF")
+              .fontSize(10)
+              .text(data.academicLevel === "Student" ? "Entrada Estudiante" : "Entrada Profesional", pdfDoc.page.width - 95, 24);
 
           pdfDoc.moveDown(1);
 
-          // Detalles del evento
-          pdfDoc.font("Helvetica-Bold")
-              .fontSize(18)
-              .fillColor("#0D47A1")
-              .text("Detalles del Evento:", 50, 300)
+          // Información del asistente
+          pdfDoc.fillColor("#333333")
+              .font("Helvetica-Bold")
+              .fontSize(16)
+              .text(`${data.firstName} ${data.lastName}`, { align: "center" })
               .moveDown(0.5);
 
           pdfDoc.font("Helvetica")
-              .fontSize(16)
-              .text("Fecha: 20 AGO 2024")
-              .text("Hora: 08:00 AM")
-              .text("Ubicación: Santa Cruz de la Sierra")
-              .moveDown(1);
+              .fontSize(12)
+              .fillColor("#333333")
+              .text(`Email: ${data.email}`, { align: "center" })
+              .moveDown(0.2)
+              .text(`Teléfono: ${data.phone}`, { align: "center" })
+              .moveDown(0.2)
+              .text(`Profesión: ${data.profession || "N/A"}`, { align: "center" });
+
+          pdfDoc.moveDown(1);
+
+          // Fecha y hora del evento
+          pdfDoc.fontSize(16)
+              .fillColor("#0D47A1")
+              .text("20 AGO 2024 | 11:00 AM", { align: "center" })
+              .moveDown(0.2)
+              .text("Santa Cruz de la Sierra", { align: "center" });
+
+          pdfDoc.moveDown(1);
 
           // Código QR
-          pdfDoc.rect(350, 180, 190, 190).fill("#FFFFFF").stroke();
-          pdfDoc.image(qrCodeDataURL, 360, 190, { fit: [170, 170] });
+          pdfDoc.image(qrCodeDataURL, (pdfDoc.page.width - 180) / 2, pdfDoc.y, { fit: [180, 180] });
 
-          // Número de ticket
-          pdfDoc.fontSize(14)
-              .fillColor("#333333")
-              .text(`Número de Ticket: ${data.token}`, 350, 380, { width: 190, align: "center" });
+          pdfDoc.moveDown(2);
 
           // Nota de pie
           pdfDoc.fontSize(10)
               .fillColor("#666666")
-              .text("Este ticket es personal e intransferible.", 50, 500, { align: "center" });
-
-          // Línea de corte
-          pdfDoc.moveTo(50, 520)
-              .lineTo(550, 520)
-              .dash(5, { space: 5 })
-              .stroke();
+              .text("Un evento del Grupo CECAL SRL y la revista ENERGÍABolivia", { align: "center", width: pdfDoc.page.width });
 
           pdfDoc.end();
 
@@ -165,6 +230,11 @@ exports.sendEmail = functions.firestore.document("clientes/{clientId}")
           sendMail(data.email, pdfData, data);
 
           fs.unlinkSync(pdfPath);
+
+          // Registrar la hora de envío del correo
+          await clientRef.update({
+            lastEmailSent: admin.firestore.Timestamp.now(),
+          });
         } catch (error) {
           console.error("Error generando el PDF o enviando el correo:", error);
         }
