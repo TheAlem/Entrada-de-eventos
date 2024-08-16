@@ -12,21 +12,25 @@ const PaymentQR = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const checkExistingPayment = async (clientToken) => {
+  const checkPaymentStatus = async (clientToken) => {
     try {
       const db = getFirestore();
       const docRef = doc(db, 'clientes', clientToken);
       const docSnapshot = await getDoc(docRef);
 
-      if (docSnapshot.exists() && docSnapshot.data().paymentStatus) {
-        navigate(`/entry/${clientToken}`);
-        return true;
+      if (docSnapshot.exists()) {
+        const paymentStatus = docSnapshot.data().paymentStatus;
+        if (paymentStatus === true) {
+          navigate(`/entry/${clientToken}`);
+        } else {
+          setTimeout(() => checkPaymentStatus(clientToken), 5000);
+        }
+      } else {
+        setError('No se encontró información del cliente.');
       }
-      return false;
     } catch (err) {
       setError('Error al verificar el estado de pago.');
-      console.error('Error en checkExistingPayment:', err);
-      return false;
+      console.error('Error en checkPaymentStatus:', err);
     }
   };
 
@@ -46,7 +50,6 @@ const PaymentQR = () => {
       const data = await generateQR(paymentDetails);
       setQrData(data);
       await savePaymentInfo(data, clientData.token);
-      checkPaymentStatus(clientData.token);
     } catch (err) {
       setError(`Error al generar el QR: ${err.message}`);
     } finally {
@@ -68,32 +71,13 @@ const PaymentQR = () => {
     }
   };
 
-  const checkPaymentStatus = async (clientToken) => {
-    try {
-      const db = getFirestore();
-      const docRef = doc(db, 'clientes', clientToken);
-      const docSnapshot = await getDoc(docRef);
-
-      if (docSnapshot.exists() && docSnapshot.data().paymentStatus) {
-        navigate(`/entry/${clientToken}`);
-      } else {
-        setTimeout(() => checkPaymentStatus(clientToken), 5000);
-      }
-    } catch (err) {
-      setError('Error al verificar el estado de pago.');
-      console.error('Error en checkPaymentStatus:', err);
-    }
-  };
-
   useEffect(() => {
     const fetchClientData = async () => {
       listenToFirestoreUpdates(async (clients) => {
         const currentClient = clients.find(client => client.token === localStorage.getItem('userToken'));
         if (currentClient) {
-          const paymentCompleted = await checkExistingPayment(currentClient.token);
-          if (!paymentCompleted) {
-            handleGenerateQR(currentClient);
-          }
+          await handleGenerateQR(currentClient);
+          checkPaymentStatus(currentClient.token);
         } else {
           setError("No se encontró información del cliente.");
           setLoading(false);
@@ -136,7 +120,7 @@ const PaymentQR = () => {
               <div className="mt-4 bg-red-50 border-l-4 border-red-400 text-red-800 p-4 rounded-lg text-center">
                 {error}
                 <p className="mt-4">
-                  <Link to="/personal-data" className="text-green-700 hover:text-gren-900 underline">
+                  <Link to="/personal-data" className="text-green-700 hover:text-green-900 underline">
                     Haz clic aquí para volver al formulario
                   </Link>
                 </p>
