@@ -44,7 +44,7 @@ export const generateQR = async (paymentDetails) => {
 
     if (response.data && response.data.success && response.data.qr) {
       return {
-        id: response.data.id,
+        qrId: response.data.id,  // Aquí se obtiene el ID del QR
         qr: response.data.qr
       };
     } else {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { saveDataToFirestore, listenToFirestoreUpdates } from '../Firebase/PersonalData/BkForm'; 
+import { saveDataToFirestore } from '../Firebase/PersonalData/BkForm'; 
 import { useToken } from '../Firebase/context/TokenContext';
 import ClipLoader from 'react-spinners/ClipLoader';
 import 'tailwindcss/tailwind.css';
@@ -35,22 +35,8 @@ const PersonalDataForm = () => {
 
   const generateAndStoreToken = () => {
     const newToken = uuidv4();
-    updateToken(newToken);
+    updateToken(newToken);  // Esto reemplaza el token anterior con el nuevo
     return newToken;
-  };
-
-  const checkTicketStatus = () => {
-    listenToFirestoreUpdates((tickets) => {
-      const userTicket = tickets.find(ticket => ticket.token === token);
-      if (userTicket) {
-        if (userTicket.status === 'approved') {
-          window.location.href = `/payment/${token}?level=${userTicket.academicLevel}`;
-        } else if (userTicket.status === 'completed') {
-          window.location.href = `/entry/${token}`;
-          clearSession();
-        }
-      }
-    });
   };
 
   const clearSession = () => {
@@ -73,23 +59,26 @@ const PersonalDataForm = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    const userToken = token || generateAndStoreToken();
-    const formDataWithToken = { ...formData, token: userToken };
+  e.preventDefault();
+  setLoading(true);
+  
+  // Destruir el token anterior antes de generar uno nuevo
+  if (token) {
+    clearSession();  // Limpiar el token anterior
+  }
 
-    const result = await saveDataToFirestore(formDataWithToken);
-    setLoading(false);
-    if (result.success) {
-      if (formData.academicLevel === 'Student') {
-        setMessage('Tus datos están en revisión. Serás redirigido una vez sean aprobados.');
-      } else {
-        window.location.href = `/payment/${userToken}?level=${formData.academicLevel}`;
-      }
-    } else {
-      alert('Error al enviar los datos');
-    }
-  };
+  const userToken = generateAndStoreToken();  // Generar y almacenar el nuevo token
+  const formDataWithToken = { ...formData, token: userToken };
+
+  const result = await saveDataToFirestore(formDataWithToken);
+  setLoading(false);
+  if (result.success) {
+    // Redirigir a la página de pago directamente, sin esperar aprobación
+    window.location.href = `/payment/${userToken}?level=${formData.academicLevel}`;
+  } else {
+    alert('Error al enviar los datos');
+  }
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">

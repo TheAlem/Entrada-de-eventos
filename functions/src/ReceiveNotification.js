@@ -1,55 +1,44 @@
 const functions = require("firebase-functions");
-const { admin, db } = require("../firebaseAdmin");
+const { db } = require("../firebaseAdmin");
 
 exports.receiveNotification = functions.https.onRequest(async (req, res) => {
-  console.log("Received a request:", req.method, req.body); // Log para ver la solicitud recibida
+  console.log("Received a request:", req.method, req.body);
 
   if (req.method !== "POST") {
-    console.log("Method Not Allowed"); // Log cuando el método no es POST
+    console.log("Method Not Allowed");
     return res.status(405).send("Method Not Allowed");
   }
 
   try {
     const { QRId, Gloss, sourceBankId, originName, VoucherId, TransactionDateTime, additionalData } = req.body;
-
-    // Log para ver los datos recibidos
     console.log("Received data:", { QRId, Gloss, sourceBankId, originName, VoucherId, TransactionDateTime, additionalData });
 
     if (!QRId || !Gloss || !sourceBankId || !originName || !VoucherId || !TransactionDateTime) {
-      console.log("Missing required data fields"); // Log cuando faltan campos
+      console.log("Missing required data fields");
       return res.status(400).json({ success: false, message: "Missing required data fields" });
     }
 
-    const paymentData = {
-      QRId,
-      Gloss,
-      sourceBankId,
-      originName,
-      VoucherId,
-      TransactionDateTime,
-      additionalData: additionalData || "",
-      status: "paid",
-      timestamp: admin.firestore.FieldValue.serverTimestamp(),
-    };
+    // Buscar el cliente con el QRId recibido
+    const clientsQuery = db.collection("clientes").where("qrId", "==", QRId);
+    const clientsSnapshot = await clientsQuery.get();
 
-    const paymentRef = db.collection("payments").doc(QRId);
-
-    const docSnapshot = await paymentRef.get();
-    if (docSnapshot.exists) {
-      console.log("Notification already processed"); // Log cuando la notificación ya fue procesada
-      return res.status(200).json({ success: true, message: "Notification already processed" });
+    if (clientsSnapshot.empty) {
+      console.log("No client found with the given QRId:", QRId);
+      return res.status(404).json({ success: false, message: "Client not found" });
     }
 
-    await paymentRef.set(paymentData);
-    console.log("Payment data saved:", paymentData); // Log cuando los datos de pago se guardan
+    // Asumiendo que hay un único cliente con el QRId dado
+    const clientDoc = clientsSnapshot.docs[0];
 
-    const clientRef = db.collection("clientes").doc(QRId);
-    await clientRef.update({ paymentStatus: true });
-    console.log("Client payment status updated for QRId:", QRId); // Log cuando el estado de pago del cliente se actualiza
+    // Actualizar el estado de pago en el documento del cliente
+    await clientDoc.ref.update({ paymentStatus: true });
+    console.log("Client payment status updated for QRId:", QRId);
 
-    return res.status(200).json({ success: true, message: "Notification received and processed successfully" });
+    // No guardar nueva información en la colección 'clientes' o cualquier otra colección adicional
+    // Simplemente confirmamos que se actualizó el estado de pago
+    return res.status(200).json({ success: true, message: "Payment status updated successfully" });
   } catch (error) {
-    console.error("Error processing notification:", error); // Log cuando hay un error
+    console.error("Error processing notification:", error);
     return res.status(500).json({ success: false, message: "Internal server error" });
   }
 });

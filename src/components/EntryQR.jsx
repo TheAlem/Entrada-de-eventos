@@ -4,7 +4,7 @@ import { db } from '../Firebase/firebase-config';
 import { query, where, collection, getDocs, doc, setDoc } from 'firebase/firestore';
 import QRCode from 'qrcode.react';
 import html2canvas from 'html2canvas';
-import { ClipLoader } from 'react-spinners'; // Importa el spinner desde react-spinners
+import { ClipLoader } from 'react-spinners';
 
 const EntryQR = () => {
   const { token } = useParams();
@@ -24,6 +24,7 @@ const EntryQR = () => {
         if (!querySnapshot.empty) {
           querySnapshot.forEach((doc) => {
             const entryData = doc.data();
+            entryData.id = doc.id; // Almacenar el ID del documento de Firestore en entryData
             if (entryData.paymentStatus) {
               setEntry(entryData);
               triggerSendEmail(entryData);
@@ -45,7 +46,8 @@ const EntryQR = () => {
 
   const triggerSendEmail = async (entryData) => {
     try {
-      const docRef = doc(db, 'clientes', entryData.token);
+      // Usar el ID del documento de Firebase (entryData.id) para hacer la actualización
+      const docRef = doc(db, 'clientes', entryData.id);
       await setDoc(docRef, entryData, { merge: true });
     } catch (error) {
       setError(`Hubo un problema al enviar el correo: ${error.message}`);
@@ -78,7 +80,7 @@ const EntryQR = () => {
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <ClipLoader size={50} color={"#4CAF50"} loading={loading} /> {/* Spinner */}
+        <ClipLoader size={50} color={"#4CAF50"} loading={loading} />
         <p style={{ marginLeft: '20px', fontSize: '18px', color: '#4CAF50' }}>Estamos cargando tu información, por favor espera...</p>
       </div>
     );

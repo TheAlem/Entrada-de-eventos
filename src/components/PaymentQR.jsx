@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { generateQR } from '../Firebase/Api/api';
-import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
-import { listenToFirestoreUpdates } from '../Firebase/PersonalData/BkForm';
+import { getFirestore, doc, setDoc, updateDoc, query, where, collection, getDocs } from 'firebase/firestore';
 import ClipLoader from 'react-spinners/ClipLoader';
 import 'tailwindcss/tailwind.css';
 
@@ -15,11 +14,12 @@ const PaymentQR = () => {
   const checkPaymentStatus = async (clientToken) => {
     try {
       const db = getFirestore();
-      const docRef = doc(db, 'clientes', clientToken);
-      const docSnapshot = await getDoc(docRef);
+      const clientsQuery = query(collection(db, 'clientes'), where('token', '==', clientToken));
+      const clientsSnapshot = await getDocs(clientsQuery);
 
-      if (docSnapshot.exists()) {
-        const paymentStatus = docSnapshot.data().paymentStatus;
+      if (!clientsSnapshot.empty) {
+        const clientDoc = clientsSnapshot.docs[0];
+        const paymentStatus = clientDoc.data().paymentStatus;
         if (paymentStatus === true) {
           navigate(`/entry/${clientToken}`);
         } else {
@@ -38,51 +38,65 @@ const PaymentQR = () => {
     setLoading(true);
     setError('');
     try {
-      const paymentAmount = clientData.academicLevel === 'Student' ? "150" : "0.01";
-      const paymentDetails = {
-        currency: "BOB",
-        gloss: "Pago Entrada Evento",
-        amount: paymentAmount,
-        singleUse: "true",
-        expirationDate: "2024-09-01",
-        additionalData: `Datos Adicionales - ${new Date().toISOString()}`
-      };
-      const data = await generateQR(paymentDetails);
-      setQrData(data);
-      await savePaymentInfo(data, clientData.token);
+      if (!clientData.qrId) { // Solo generar un nuevo QR si no existe
+        const paymentAmount = clientData.academicLevel === 'Student' ? "100" : "200";
+        const paymentDetails = {
+          currency: "BOB",
+          gloss: "Pago Entrada Evento",
+          amount: paymentAmount,
+          singleUse: "true",
+          expirationDate: "2024-09-01",
+          additionalData: `Datos Adicionales - ${new Date().toISOString()}`
+        };
+        const data = await generateQR(paymentDetails);
+        setQrData(data);
+        await updateClientQRId(clientData.token, data.qrId); // Actualizar el QRId en el documento existente en la colección 'clientes'
+      } else {
+        setQrData({ qr: clientData.qrCode }); // Utilizar el QR existente
+      }
     } catch (err) {
       setError(`Error al generar el QR: ${err.message}`);
     } finally {
       setLoading(false);
     }
   };
+  
 
-  const savePaymentInfo = async (qrData, clientToken) => {
+  const updateClientQRId = async (clientToken, qrId) => {
     try {
       const db = getFirestore();
-      const docRef = doc(db, 'payments', clientToken);
-      await setDoc(docRef, {
-        ...qrData,
-        token: clientToken,
-        timestamp: new Date(),
-      });
+      const clientsQuery = query(collection(db, 'clientes'), where('token', '==', clientToken));
+      const clientsSnapshot = await getDocs(clientsQuery);
+
+      if (!clientsSnapshot.empty) {
+        const clientDoc = clientsSnapshot.docs[0]; // Obtener el primer documento
+        const clientRef = doc(db, 'clientes', clientDoc.id); // Obtener la referencia del documento usando su ID
+        await updateDoc(clientRef, { qrId }); // Usar updateDoc para actualizar el campo qrId
+        console.log("QRId actualizado en el documento del cliente.");
+      } else {
+        console.error("No se encontró el documento del cliente con el token proporcionado.");
+      }
     } catch (err) {
-      console.error('Error al guardar la información del pago:', err);
+      console.error('Error al actualizar el QRId del cliente:', err);
     }
   };
 
   useEffect(() => {
     const fetchClientData = async () => {
-      listenToFirestoreUpdates(async (clients) => {
-        const currentClient = clients.find(client => client.token === localStorage.getItem('userToken'));
-        if (currentClient) {
-          await handleGenerateQR(currentClient);
-          checkPaymentStatus(currentClient.token);
-        } else {
-          setError("No se encontró información del cliente.");
-          setLoading(false);
-        }
-      });
+      const clientToken = localStorage.getItem('userToken');
+      const db = getFirestore();
+      const clientsQuery = query(collection(db, 'clientes'), where('token', '==', clientToken));
+      const clientsSnapshot = await getDocs(clientsQuery);
+
+      if (!clientsSnapshot.empty) {
+        const clientDoc = clientsSnapshot.docs[0];
+        const clientData = clientDoc.data();
+        await handleGenerateQR(clientData);
+        checkPaymentStatus(clientToken);
+      } else {
+        setError("No se encontró información del cliente.");
+        setLoading(false);
+      }
     };
     fetchClientData();
   }, []);
