@@ -8,7 +8,7 @@ const QRScanner = () => {
     const [modalIsOpen, setModalIsOpen] = useState(false);
     const [modalContent, setModalContent] = useState('Acerque el QR para escanear');
     const [isScanning, setIsScanning] = useState(false);
-    const [hasScanned, setHasScanned] = useState(false); // Nueva bandera para evitar escaneos repetidos
+    const [hasScanned, setHasScanned] = useState(false);
     const qrRef = useRef(null);
     const qrScanner = useRef(null);
 
@@ -22,14 +22,14 @@ const QRScanner = () => {
     }, []);
 
     const startScanner = async () => {
-        if (!qrScanner.current && !hasScanned) { // Solo iniciar el escáner si no ha escaneado
+        if (!qrScanner.current && !hasScanned) {
             try {
                 const devices = await Html5Qrcode.getCameras();
                 if (devices.length) {
                     qrScanner.current = new Html5Qrcode(qrRef.current.id);
                     const config = {
                         fps: 15,
-                        qrbox: { width: 300, height: 300 },
+                        qrbox: (window.innerWidth < 768) ? { width: 250, height: 250 } : { width: 300, height: 300 }, // Ajuste para móvil
                         aspectRatio: 1.0
                     };
                     await qrScanner.current.start({ facingMode: "environment" }, config, onScanSuccess, onScanFailure);
@@ -51,7 +51,7 @@ const QRScanner = () => {
             qrScanner.current.stop().then(() => {
                 qrScanner.current = null;
                 setIsScanning(false);
-                setHasScanned(false); // Permitir escanear nuevamente después de detener
+                setHasScanned(false);
                 setModalContent('Escaneo detenido');
                 setModalIsOpen(true);
             }).catch(err => {
@@ -68,13 +68,13 @@ const QRScanner = () => {
             return;
         }
 
-        setHasScanned(true); // Marcar como escaneado
+        setHasScanned(true);
         try {
             const qrData = JSON.parse(decodedText);
             const response = await axios.post('https://us-central1-energiaboliviappandroid.cloudfunctions.net/VerifyQr', { token: qrData.token }, { headers: { 'Content-Type': 'application/json' }});
             if (response.data) {
                 setQrCodeResult(JSON.stringify(response.data, null, 2));
-                setModalContent(`QR válido: ${response.data.message}`);
+                setModalContent(`¡QR escaneado con éxito! Disfruta del evento.`);
             }
         } catch (error) {
             let errorMessage = `Error en la solicitud: ${error.message}`;
@@ -109,8 +109,11 @@ const QRScanner = () => {
                         Detener Escaneo
                     </button>
                 </div>
-                <div ref={qrRef} id="qr-reader" className="w-full h-96 bg-gray-200 rounded-lg overflow-hidden"></div>
-                <p className="text-sm mt-4 text-center text-gray-600">Resultado del escaneo: <pre className="font-semibold whitespace-pre-wrap break-words">{qrCodeResult || 'Ninguno'}</pre></p>
+                <div ref={qrRef} id="qr-reader" className="w-full h-72 bg-gray-200 rounded-lg overflow-hidden"></div>
+                <p className="text-sm mt-4 text-center text-gray-600">Resultado del escaneo:</p>
+                <pre className="bg-gray-100 p-4 rounded-lg text-sm font-semibold text-left text-gray-700 whitespace-pre-wrap break-words mt-2">
+                    {qrCodeResult || 'Ninguno'}
+                </pre>
             </div>
             <Modal isOpen={modalIsOpen} onRequestClose={() => setModalIsOpen(false)} contentLabel="Resultados del Escaneo" className="bg-white rounded-lg p-6 shadow-xl max-w-sm mx-auto mt-20" overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-start">
                 <h2 className="text-xl font-bold mb-4 text-green-600">Resultados del Escaneo</h2>
