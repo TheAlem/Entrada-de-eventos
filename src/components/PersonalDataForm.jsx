@@ -26,7 +26,6 @@ const PersonalDataForm = () => {
   useEffect(() => {
     if (token) {
       const interval = setInterval(() => {
-        checkTicketStatus();
       }, 5000);
 
       return () => clearInterval(interval);

@@ -6,6 +6,8 @@ import QRCode from 'qrcode.react';
 import html2canvas from 'html2canvas';
 import { ClipLoader } from 'react-spinners';
 
+import backgroundImage from '../assets/images/E-ticket.png'; // Asume que tienes esta imagen en tu proyecto
+
 const EntryQR = () => {
   const { token } = useParams();
   const navigate = useNavigate();
@@ -24,7 +26,7 @@ const EntryQR = () => {
         if (!querySnapshot.empty) {
           querySnapshot.forEach((doc) => {
             const entryData = doc.data();
-            entryData.id = doc.id; // Almacenar el ID del documento de Firestore en entryData
+            entryData.id = doc.id;
             if (entryData.paymentStatus) {
               setEntry(entryData);
               triggerSendEmail(entryData);
@@ -46,7 +48,6 @@ const EntryQR = () => {
 
   const triggerSendEmail = async (entryData) => {
     try {
-      // Usar el ID del documento de Firebase (entryData.id) para hacer la actualización
       const docRef = doc(db, 'clientes', entryData.id);
       await setDoc(docRef, entryData, { merge: true });
     } catch (error) {
@@ -60,7 +61,7 @@ const EntryQR = () => {
         const element = document.querySelector("#ticketContainer");
         await new Promise(r => setTimeout(r, 500));
         const canvas = await html2canvas(element, {
-          scale: 4,
+          scale: 5,
           useCORS: true
         });
         const image = canvas.toDataURL("image/png");
@@ -106,7 +107,7 @@ const EntryQR = () => {
           <p style={{ fontSize: '16px', color: '#e65100' }}>Parece que no has completado el pago. No te preocupes, puedes hacerlo ahora mismo.</p>
           <button
             style={{ padding: '10px 20px', backgroundColor: '#4CAF50', color: 'white', fontSize: '16px', borderRadius: '5px', cursor: 'pointer', marginTop: '20px' }}
-            onClick={() => navigate(`/payment/${token}`)} // Redirige a la página de pago
+            onClick={() => navigate(`/payment/${token}`)}
           >
             Ir a la página de pago
           </button>
@@ -119,83 +120,78 @@ const EntryQR = () => {
     return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Cargando...</div>;
   }
 
-  const getColorStyles = (academicLevel) => {
-    return academicLevel === "Student" ? {
-      gradientStart: '#6cdb78',
-      gradientEnd: '#21da35',
-      textColor: '#23a03c',
-      highlightColor: '#e4fbe8'
-    } : {
-      gradientStart: '#98d6f3',
-      gradientEnd: '#42A5F5',
-      textColor: '#0D47A1',
-      highlightColor: '#E3F2FD'
-    };
-  };
-
-  const colors = getColorStyles(entry.academicLevel);
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh', backgroundColor: '#F3F4F6', justifyContent: 'center' }}>
-      <div id="ticketContainer" style={{ width: '100%', maxWidth: '400px', backgroundColor: 'white', borderRadius: '24px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', overflow: 'hidden', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-        <div style={{ padding: '24px', background: `linear-gradient(to right, ${colors.gradientStart}, ${colors.gradientEnd})`, color: 'white' }}>
-          <h1 style={{ fontSize: '24px', fontWeight: 'bold' }}>BOLIVIA BLOCKCHAIN SUMMIT</h1>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '18px' }}>
-            <p>2024</p>
-            <span style={{ backgroundColor: 'white', color: colors.textColor, padding: '4px 8px', borderRadius: '999px', fontSize: '12px', fontWeight: 'bold' }}>
-              {entry.academicLevel === "Student" ? 'Entrada Estudiante' : 'Entrada Profesional'}
-            </span>
-          </div>
-        </div>
-
-        <div style={{ padding: '24px' }}>
-          <div style={{ backgroundColor: colors.highlightColor, borderRadius: '16px', padding: '16px', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.05)' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: colors.textColor, marginBottom: '8px' }}>{entry.firstName} {entry.lastName}</h2>
-            <p style={{ fontSize: '14px', color: colors.textColor }}><strong>Email:</strong> {entry.email}</p>
-            <p style={{ fontSize: '14px', color: colors.textColor }}><strong>Teléfono:</strong> {entry.phone}</p>
-            {entry.academicLevel === "Student" ? (
-              <p style={{ fontSize: '14px', color: colors.textColor }}><strong>Universidad:</strong> {entry.universityName}</p>
-            ) : (
-              <p style={{ fontSize: '14px', color: colors.textColor }}><strong>Profesión:</strong> {entry.profession}</p>
-            )}
-          </div>
-
-          <div style={{ textAlign: 'center', marginTop: '16px' }}>
-            <p style={{ fontSize: '18px', fontWeight: 'bold', color: colors.textColor }}>20 AGO 2024 | 11:00 AM</p>
-            <p style={{ fontSize: '16px', color: colors.textColor }}>Santa Cruz de la Sierra</p>
-          </div>
-
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh', backgroundColor: '#F3F4F6', justifyContent: 'center', padding: '20px' }}>
+      <div id="ticketContainer" style={{
+        width: '100%',
+        maxWidth: '1000px',
+        height: '750px', // Altura fija para asegurar scroll en móviles
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        borderRadius: '24px',
+        position: 'relative',
+        boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+        padding: '20px',
+        boxSizing: 'border-box',
+        overflow: 'hidden', // Oculta el scroll en pantallas grandes
+      }}>
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          right: '10%',
+          transform: 'translateY(-50%)',
+          width: '100%',
+          maxWidth: '480px',
+          backgroundColor: 'rgba(255,255,255,0.9)',
+          borderRadius: '16px',
+          padding: '16px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+        }}>
+          <h2 style={{ fontSize: '22px', fontWeight: 'bold', color: '#0D47A1', marginBottom: '8px', textAlign: 'center' }}>{entry.firstName} {entry.lastName}</h2>
+          <p style={{ fontSize: '16px', color: '#0D47A1', marginBottom: '4px', textAlign: 'center' }}><strong>Email:</strong> {entry.email}</p>
+          <p style={{ fontSize: '16px', color: '#0D47A1', marginBottom: '4px', textAlign: 'center' }}><strong>Teléfono:</strong> {entry.phone}</p>
+          <p style={{ fontSize: '16px', color: '#0D47A1', marginBottom: '4px', textAlign: 'center' }}><strong>Profesión:</strong> {entry.profession}</p>
+          <p style={{ fontSize: '16px', fontWeight: 'bold', color: '#0D47A1', marginTop: '8px', textAlign: 'center' }}>20 AGO 2024 | 8:00 AM</p>
+          <p style={{ fontSize: '16px', color: '#0D47A1', textAlign: 'center' }}>Santa Cruz de la Sierra</p>
           <div style={{ display: 'flex', justifyContent: 'center', marginTop: '16px' }}>
-            <QRCode 
+            <QRCode
               value={JSON.stringify({
                 firstName: entry.firstName,
                 lastName: entry.lastName,
                 email: entry.email,
                 phone: entry.phone,
                 academicLevel: entry.academicLevel,
-                universityName: entry.universityName || "",
-                profession: entry.profession || "",
-                companyName: entry.companyName || "",
+                profession: entry.profession,
                 token: entry.token,
                 paymentStatus: entry.paymentStatus
               })}
-              size={256} // Aumenta el tamaño para una mayor resolución
+              size={300}
               level="H"
-              includeMargin={true}
-              renderAs="svg" // Usa SVG para una mejor claridad
+              includeMargin={false}
+              renderAs="svg"
             />
           </div>
-
-          <p style={{ fontSize: '12px', textAlign: 'center', color: '#9CA3AF', marginTop: '16px' }}>Un evento del Grupo CECAL SRL y la revista ENERGÍABolivia</p>
-        </div>
-        <div style={{ textAlign: 'center', marginTop: 'auto', padding: '20px' }}>
-          <button 
-            style={{ padding: '10px 20px', backgroundColor: '#4CAF50', color: 'white', fontSize: '16px', borderRadius: '5px', cursor: 'pointer' }} 
-            onClick={handleDownload}
-          >
-            Descargar Ticket
-          </button>
         </div>
       </div>
+      <button
+        style={{
+          padding: '12px 24px',
+          backgroundColor: '#4CAF50',
+          color: 'white',
+          fontSize: '16px',
+          borderRadius: '6px',
+          cursor: 'pointer',
+          marginTop: '24px',
+          border: 'none',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          width: '100%',
+          maxWidth: '200px'
+        }}
+        onClick={handleDownload}
+      >
+        Descargar Ticket
+      </button>
     </div>
   );
 };

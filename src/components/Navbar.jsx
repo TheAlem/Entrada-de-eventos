@@ -80,7 +80,7 @@ function Navbar() {
                 <Link to="/personal-data" className={mobileLinkClass} onClick={toggleMobileMenu}>
                     Datos Personales
                 </Link>
-                <Link to="/payment" className={mobileLinkClass} onClick={toggleMobileMenu}>
+                <Link to={`/payment/${token}`} className={mobileLinkClass} onClick={toggleMobileMenu}>
                     Pago
                 </Link>
                 <Link to={`/entry/${token}`} className={mobileLinkClass} onClick={toggleMobileMenu}>

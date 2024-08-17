@@ -7,7 +7,6 @@ const os = require("os");
 const functions = require("firebase-functions");
 const { admin, db } = require("../firebaseAdmin");
 
-
 // Configuración de Nodemailer para enviar correos
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
@@ -149,7 +148,7 @@ exports.sendEmail = functions.firestore.document("clientes/{clientId}")
         }
 
         const pdfPath = path.join(os.tmpdir(), `${data.token}.pdf`);
-        const pdfDoc = new PDFDocument({ size: [360, 640], margin: 10 }); // Tamaño personalizado
+        const pdfDoc = new PDFDocument({ size: [792, 612], margin: 20 }); // Tamaño carta en puntos
         const stream = fs.createWriteStream(pdfPath);
         pdfDoc.pipe(stream);
 
@@ -165,59 +164,49 @@ exports.sendEmail = functions.firestore.document("clientes/{clientId}")
           // Fondo y diseño del PDF
           pdfDoc.rect(0, 0, pdfDoc.page.width, pdfDoc.page.height).fill("#FFFFFF");
 
+          // Imagen de fondo
+          pdfDoc.image(path.join(__dirname, "../assets/E-ticket.png"), {
+            fit: [pdfDoc.page.width, pdfDoc.page.height],
+            align: "center",
+            valign: "center",
+          });
+
           // Header con el título del evento
-          pdfDoc.rect(0, 0, pdfDoc.page.width, 80).fill("#183c33");
-          pdfDoc.fillColor("#FFFFFF")
+          pdfDoc.fillColor("#000000")
               .font("Helvetica-Bold")
-              .fontSize(22)
-              .text("BOLIVIA BLOCKCHAIN", { align: "center", valign: "center" })
-              .moveDown(0.5)
-              .text("SUMMIT 2024", { align: "center" });
-
-          // Tipo de entrada
-          pdfDoc.rect(pdfDoc.page.width - 100, 20, 80, 20).fill("#42A5F5");
-          pdfDoc.fillColor("#FFFFFF")
-              .fontSize(10)
-              .text(data.academicLevel === "Student" ? "Entrada Estudiante" : "Entrada Profesional", pdfDoc.page.width - 95, 24);
-
-          pdfDoc.moveDown(1);
+              .fontSize(26)
+              .text("BOLIVIA BLOCKCHAIN SUMMIT 2024", { align: "center", valign: "top" })
+              .moveDown(1);
 
           // Información del asistente
-          pdfDoc.fillColor("#333333")
+          pdfDoc.fillColor("#000000")
               .font("Helvetica-Bold")
               .fontSize(16)
-              .text(`${data.firstName} ${data.lastName}`, { align: "center" })
+              .text(`${data.firstName} ${data.lastName}`, { align: "right" })
               .moveDown(0.5);
 
           pdfDoc.font("Helvetica")
               .fontSize(12)
-              .fillColor("#333333")
-              .text(`Email: ${data.email}`, { align: "center" })
+              .fillColor("#000000")
+              .text(`Email: ${data.email}`, { align: "right" })
               .moveDown(0.2)
-              .text(`Teléfono: ${data.phone}`, { align: "center" })
+              .text(`Teléfono: ${data.phone}`, { align: "right" })
               .moveDown(0.2)
-              .text(`Profesión: ${data.profession || "N/A"}`, { align: "center" });
+              .text(`Profesión: ${data.profession || "N/A"}`, { align: "right" });
 
           pdfDoc.moveDown(1);
 
           // Fecha y hora del evento
           pdfDoc.fontSize(16)
               .fillColor("#0D47A1")
-              .text("20 AGO 2024 | 11:00 AM", { align: "center" })
+              .text("20 AGO 2024 | 11:00 AM", { align: "right" })
               .moveDown(0.2)
-              .text("Santa Cruz de la Sierra", { align: "center" });
+              .text("Santa Cruz de la Sierra", { align: "right" });
 
           pdfDoc.moveDown(1);
 
           // Código QR
-          pdfDoc.image(qrCodeDataURL, (pdfDoc.page.width - 180) / 2, pdfDoc.y, { fit: [180, 180] });
-
-          pdfDoc.moveDown(2);
-
-          // Nota de pie
-          pdfDoc.fontSize(10)
-              .fillColor("#666666")
-              .text("Un evento del Grupo CECAL SRL y la revista ENERGÍABolivia", { align: "center", width: pdfDoc.page.width });
+          pdfDoc.image(qrCodeDataURL, pdfDoc.page.width - 220, pdfDoc.y, { fit: [200, 200] });
 
           pdfDoc.end();
 
