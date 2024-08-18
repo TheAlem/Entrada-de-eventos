@@ -129,7 +129,7 @@ const EntryQR = () => {
 
   return (
     <div className="flex flex-col items-center min-h-screen bg-gray-100 justify-center p-2 md:p-5">
-      <div id="ticketContainer" className="relative w-full max-w-4xl bg-cover bg-center rounded-3xl shadow-md overflow-hidden" style={{ backgroundImage: `url(${backgroundImage})`, height: 'auto', aspectRatio: '1.3/1' }}>
+      <div id="ticketContainer" className="relative w-full max-w-4xl bg-cover bg-center rounded-3xl shadow-md overflow-hidden" style={{ backgroundImage: `url(${backgroundImage})`, height: '700px'}}>
         <div className="absolute inset-0 flex flex-col justify-center items-center bg-white bg-opacity-90 rounded-2xl p-6 shadow-sm" style={{ top: '15%', left: '40%', right: '10%', bottom: '20%' }}>
           <div className="flex flex-col justify-between h-full w-full md:w-auto">
             <div>
@@ -146,7 +146,7 @@ const EntryQR = () => {
               )}
             </div>
             <div className="flex flex-col items-center">
-              <p className={`text-base md:text-lg font-bold ${textColor} mt-4 text-center`}>20 AGO 2024 | 8:00 AM</p>
+              <p className={`text-base md:text-lg font-bold ${textColor} mt-4 text-center`}>20 AGO 2024 | 8:30 AM</p>
               <p className={`text-sm md:text-base ${textColor} text-center`}>Santa Cruz de la Sierra</p>
               <div className="flex justify-center mt-4">
                 <QRCode

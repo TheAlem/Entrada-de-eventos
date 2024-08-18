@@ -48,7 +48,7 @@ function Navbar() {
         <nav className={navbarClass}>
             <div className="container mx-auto px-4 flex justify-between items-center">
                 <div className="text-2xl font-extrabold">
-                    <Link to="/" className={eventLinkClass}>Evento de Blockchain</Link>
+                    <Link to="/" className={eventLinkClass}>BOLIVIA BLOCKCHAIN SUMMIT</Link>
                 </div>
                 <div className="hidden md:flex space-x-6">
                     <Link to="/personal-data" className={linkClass}>
