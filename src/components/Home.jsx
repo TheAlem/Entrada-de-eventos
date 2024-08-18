@@ -3,13 +3,11 @@ import { Link } from 'react-router-dom';
 import Step1 from '../assets/images/1.svg';
 import Step2 from '../assets/images/2.svg';
 import Step3 from '../assets/images/3.svg';
-import endecorporation from '../assets/Sponsors/endecorporation.png';
 import EnergiaBolivia from '../assets/Sponsors/EnergiaBolivia.png';
 import luka from '../assets/Sponsors/Luka.png';
 import repsol from '../assets/Sponsors/repsol.png';
 import TotalEnergies from '../assets/Sponsors/totalenergies.svg';
 import Toyota from '../assets/Sponsors/Toyota.svg';
-import YPFB from '../assets/Sponsors/YPFB_Logo.svg';
 import AgroToken from '../assets/Sponsors/Agro.svg';
 import backgroundImage from '../assets/images/PlantaBK.jpg';
 
@@ -23,7 +21,7 @@ function Home() {
     <div className="absolute inset-0 flex flex-col justify-center items-center text-white">
         <div className="glass-container p-4 sm:p-8 rounded-3xl text-center max-w-4xl mx-4 backdrop-blur-lg">
             <h1 className="text-3xl sm:text-4xl md:text-6xl font-extrabold mb-4 text-transparent bg-clip-text bg-gradient-to-r drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]" style={{ backgroundColor: '#a60a25' }}>
-                BOLIVIA BLOCKCHAIN SUMMIT
+                BOLIVIA BLOCKCHAIN SUMMIT 2024
             </h1>
             <p className="text-sm sm:text-lg md:text-xl mb-6">
                 Explora el futuro de la tecnología en nuestro evento exclusivo.
@@ -100,13 +98,11 @@ function StepCard({ image, step, description, link }) {
 
 function SponsorsCarousel() {
     const sponsors = [
-        { src: endecorporation, alt: "Ende Corporation" },
         { src: EnergiaBolivia, alt: "Energia Bolivia" },
         { src: luka, alt: "Luka" },
         { src: repsol, alt: "Repsol" },
         { src: TotalEnergies, alt: "Total Energies" },
-        { src: Toyota, alt: "Toyota" },
-        { src: YPFB, alt: "YPFB" },
+        { src: Toyota, alt: "Toyota" }
     ];
     
     return (

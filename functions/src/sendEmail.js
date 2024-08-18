@@ -97,8 +97,8 @@ function sendMail(email, pdfData, data) {
             <h2>Detalles del evento:</h2>
             <ul>
               <li><strong>Fecha:</strong> 20 AGO 2024</li>
-              <li><strong>Hora:</strong> 11:00 AM</li>
-              <li><strong>Ubicación:</strong> Santa Cruz de la Sierra</li>
+              <li><strong>Hora:</strong> 08:30 AM</li>
+              <li><strong>Ubicación:</strong> Hotel Los Tajibos</li>
             </ul>
           </div>
           <p>No olvides llevar tu entrada impresa o en tu dispositivo móvil el día del evento.</p>
@@ -168,31 +168,33 @@ exports.sendEmail = functions.firestore.document("clientes/{clientId}")
             valign: "center",
           });
 
+          // Ajuste del margen izquierdo
+          const leftMargin = 480;
+
           // Información del asistente
           pdfDoc.fillColor("#0D47A1")
               .font("Helvetica-Bold")
               .fontSize(16)
-              .text(`${data.firstName} ${data.lastName}`, 40, 250, { align: "left" });
+              .text(`${data.firstName} ${data.lastName}`, leftMargin, 200, { align: "left" });
 
           pdfDoc.font("Helvetica")
               .fontSize(12)
               .fillColor("#000000")
-              .text(`Email: ${data.email}`, 40, 270, { align: "left" })
+              .text(`Email: ${data.email}`, leftMargin, 230, { align: "left" })
               .moveDown(0.5)
-              .text(`Teléfono: ${data.phone}`, { align: "left" })
-              .moveDown(0.5)
-              .text(`Profesión: ${data.profession || "N/A"}`, { align: "left" });
+              .text(`Teléfono: ${data.phone}`, { align: "left" });
 
           // Fecha y hora del evento
           pdfDoc.font("Helvetica-Bold")
               .fontSize(16)
               .fillColor("#0D47A1")
-              .text("20 AGO 2024 | 11:00 AM", 40, 350, { align: "left" })
+              .text("20 AGO 2024 | 08:30 AM", leftMargin, 300, { align: "left" })
               .moveDown(0.2)
-              .text("Santa Cruz de la Sierra", { align: "left" });
+              .text("Hotel Los Tajibos", { align: "left" });
 
-          // Código QR
-          pdfDoc.image(qrCodeDataURL, 500, 270, { fit: [200, 200] });
+          // Código QR centrado debajo de los textos
+          const qrCodeWidth = 150;
+          pdfDoc.image(qrCodeDataURL, leftMargin, 350, { width: qrCodeWidth, align: "left" });
 
           pdfDoc.end();
 
