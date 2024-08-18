@@ -6,7 +6,7 @@ import QRCode from 'qrcode.react';
 import html2canvas from 'html2canvas';
 import { ClipLoader } from 'react-spinners';
 
-import backgroundImage from '../assets/images/E-ticket.png'; // Asume que tienes esta imagen en tu proyecto
+import backgroundImage from '../assets/images/E-ticket.png';
 
 const EntryQR = () => {
   const { token } = useParams();
@@ -61,8 +61,11 @@ const EntryQR = () => {
         const element = document.querySelector("#ticketContainer");
         await new Promise(r => setTimeout(r, 500));
         const canvas = await html2canvas(element, {
-          scale: 5,
-          useCORS: true
+          scale: 3,
+          useCORS: true,
+          logging: true,
+          windowWidth: 1200,
+          windowHeight: 800
         });
         const image = canvas.toDataURL("image/png");
         const link = document.createElement('a');
@@ -80,20 +83,20 @@ const EntryQR = () => {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <div className="flex justify-center items-center h-screen">
         <ClipLoader size={50} color={"#4CAF50"} loading={loading} />
-        <p style={{ marginLeft: '20px', fontSize: '18px', color: '#4CAF50' }}>Estamos cargando tu información, por favor espera...</p>
+        <p className="ml-5 text-lg text-green-600">Estamos cargando tu información, por favor espera...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', padding: '20px', textAlign: 'center' }}>
-        <div style={{ backgroundColor: '#ffebee', borderRadius: '8px', padding: '20px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
-          <h2 style={{ fontSize: '24px', color: '#d32f2f', marginBottom: '16px' }}>¡Ups! Algo salió mal</h2>
-          <p style={{ fontSize: '16px', color: '#c62828' }}>{error}</p>
-          <p style={{ fontSize: '16px', color: '#c62828' }}>Si sigues teniendo problemas, <a href="/personal-data" style={{ color: '#183c33', textDecoration: 'underline' }}>haz clic aquí para volver a ingresar tus datos</a>.</p>
+      <div className="flex justify-center items-center h-screen p-5 text-center">
+        <div className="bg-red-100 rounded-lg p-5 shadow-md">
+          <h2 className="text-2xl text-red-700 mb-4">¡Ups! Algo salió mal</h2>
+          <p className="text-red-600">{error}</p>
+          <p className="text-red-600 mt-2">Si sigues teniendo problemas, <a href="/personal-data" className="text-green-800 underline">haz clic aquí para volver a ingresar tus datos</a>.</p>
         </div>
       </div>
     );
@@ -101,12 +104,12 @@ const EntryQR = () => {
 
   if (!hasPaid) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', padding: '20px', textAlign: 'center' }}>
-        <div style={{ backgroundColor: '#fff3e0', borderRadius: '8px', padding: '20px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
-          <h2 style={{ fontSize: '24px', color: '#ef6c00', marginBottom: '16px' }}>Pago no completado</h2>
-          <p style={{ fontSize: '16px', color: '#e65100' }}>Parece que no has completado el pago. No te preocupes, puedes hacerlo ahora mismo.</p>
+      <div className="flex justify-center items-center h-screen p-5 text-center">
+        <div className="bg-orange-100 rounded-lg p-5 shadow-md">
+          <h2 className="text-2xl text-orange-700 mb-4">Pago no completado</h2>
+          <p className="text-orange-600">Parece que no has completado el pago. No te preocupes, puedes hacerlo ahora mismo.</p>
           <button
-            style={{ padding: '10px 20px', backgroundColor: '#4CAF50', color: 'white', fontSize: '16px', borderRadius: '5px', cursor: 'pointer', marginTop: '20px' }}
+            className="mt-5 px-5 py-2 bg-green-500 text-white text-lg rounded-md cursor-pointer hover:bg-green-600"
             onClick={() => navigate(`/payment/${token}`)}
           >
             Ir a la página de pago
@@ -117,77 +120,58 @@ const EntryQR = () => {
   }
 
   if (!entry) {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Cargando...</div>;
+    return <div className="flex justify-center items-center h-screen">Cargando...</div>;
   }
 
+  const isStudent = entry.academicLevel === 'Student';
+  const bgColor = isStudent ? 'bg-green-50' : 'bg-blue-50';
+  const textColor = isStudent ? 'text-green-800' : 'text-blue-800';
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh', backgroundColor: '#F3F4F6', justifyContent: 'center', padding: '20px' }}>
-      <div id="ticketContainer" style={{
-        width: '100%',
-        maxWidth: '1000px',
-        height: '750px', // Altura fija para asegurar scroll en móviles
-        backgroundImage: `url(${backgroundImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        borderRadius: '24px',
-        position: 'relative',
-        boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-        padding: '20px',
-        boxSizing: 'border-box',
-        overflow: 'hidden', // Oculta el scroll en pantallas grandes
-      }}>
-        <div style={{
-          position: 'absolute',
-          top: '50%',
-          right: '10%',
-          transform: 'translateY(-50%)',
-          width: '100%',
-          maxWidth: '480px',
-          backgroundColor: 'rgba(255,255,255,0.9)',
-          borderRadius: '16px',
-          padding: '16px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-        }}>
-          <h2 style={{ fontSize: '22px', fontWeight: 'bold', color: '#0D47A1', marginBottom: '8px', textAlign: 'center' }}>{entry.firstName} {entry.lastName}</h2>
-          <p style={{ fontSize: '16px', color: '#0D47A1', marginBottom: '4px', textAlign: 'center' }}><strong>Email:</strong> {entry.email}</p>
-          <p style={{ fontSize: '16px', color: '#0D47A1', marginBottom: '4px', textAlign: 'center' }}><strong>Teléfono:</strong> {entry.phone}</p>
-          <p style={{ fontSize: '16px', color: '#0D47A1', marginBottom: '4px', textAlign: 'center' }}><strong>Profesión:</strong> {entry.profession}</p>
-          <p style={{ fontSize: '16px', fontWeight: 'bold', color: '#0D47A1', marginTop: '8px', textAlign: 'center' }}>20 AGO 2024 | 8:00 AM</p>
-          <p style={{ fontSize: '16px', color: '#0D47A1', textAlign: 'center' }}>Santa Cruz de la Sierra</p>
-          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '16px' }}>
-            <QRCode
-              value={JSON.stringify({
-                firstName: entry.firstName,
-                lastName: entry.lastName,
-                email: entry.email,
-                phone: entry.phone,
-                academicLevel: entry.academicLevel,
-                profession: entry.profession,
-                token: entry.token,
-                paymentStatus: entry.paymentStatus
-              })}
-              size={300}
-              level="H"
-              includeMargin={false}
-              renderAs="svg"
-            />
+    <div className="flex flex-col items-center min-h-screen bg-gray-100 justify-center p-2 md:p-5">
+      <div id="ticketContainer" className="relative w-full max-w-4xl bg-cover bg-center rounded-3xl shadow-md overflow-hidden" style={{ backgroundImage: `url(${backgroundImage})`, height: 'auto', aspectRatio: '1.3/1' }}>
+        <div className="absolute inset-0 flex flex-col justify-center items-center bg-white bg-opacity-90 rounded-2xl p-6 shadow-sm" style={{ top: '15%', left: '40%', right: '10%', bottom: '20%' }}>
+          <div className="flex flex-col justify-between h-full w-full md:w-auto">
+            <div>
+              <h2 className={`text-xl md:text-2xl font-bold ${textColor} mb-4 text-center`}>{entry.firstName} {entry.lastName}</h2>
+              <p className={`text-sm md:text-base ${textColor} mb-2 text-center`}><strong>Email:</strong> {entry.email}</p>
+              <p className={`text-sm md:text-base ${textColor} mb-2 text-center`}><strong>Teléfono:</strong> {entry.phone}</p>
+              {isStudent ? (
+                <p className={`text-sm md:text-base ${textColor} mb-2 text-center`}><strong>Universidad:</strong> {entry.universityName}</p>
+              ) : (
+                <>
+                  <p className={`text-sm md:text-base ${textColor} mb-2 text-center`}><strong>Profesión:</strong> {entry.profession}</p>
+                  <p className={`text-sm md:text-base ${textColor} mb-2 text-center`}><strong>Empresa:</strong> {entry.companyName}</p>
+                </>
+              )}
+            </div>
+            <div className="flex flex-col items-center">
+              <p className={`text-base md:text-lg font-bold ${textColor} mt-4 text-center`}>20 AGO 2024 | 8:00 AM</p>
+              <p className={`text-sm md:text-base ${textColor} text-center`}>Santa Cruz de la Sierra</p>
+              <div className="flex justify-center mt-4">
+                <QRCode
+                  value={JSON.stringify({
+                    firstName: entry.firstName,
+                    lastName: entry.lastName,
+                    email: entry.email,
+                    phone: entry.phone,
+                    academicLevel: entry.academicLevel,
+                    profession: entry.profession,
+                    token: entry.token,
+                    paymentStatus: entry.paymentStatus
+                  })}
+                  size={150}
+                  level="H"
+                  includeMargin={false}
+                  renderAs="svg"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
       <button
-        style={{
-          padding: '12px 24px',
-          backgroundColor: '#4CAF50',
-          color: 'white',
-          fontSize: '16px',
-          borderRadius: '6px',
-          cursor: 'pointer',
-          marginTop: '24px',
-          border: 'none',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          width: '100%',
-          maxWidth: '200px'
-        }}
+        className="mt-6 px-4 md:px-6 py-2 md:py-3 bg-green-500 text-white text-base md:text-lg rounded-lg cursor-pointer hover:bg-green-600 shadow-sm w-full max-w-xs"
         onClick={handleDownload}
       >
         Descargar Ticket

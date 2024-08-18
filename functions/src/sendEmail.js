@@ -148,7 +148,7 @@ exports.sendEmail = functions.firestore.document("clientes/{clientId}")
         }
 
         const pdfPath = path.join(os.tmpdir(), `${data.token}.pdf`);
-        const pdfDoc = new PDFDocument({ size: [792, 612], margin: 20 }); // Tamaño carta en puntos
+        const pdfDoc = new PDFDocument({ size: [792, 612], margin: 0 }); // Tamaño carta en puntos
         const stream = fs.createWriteStream(pdfPath);
         pdfDoc.pipe(stream);
 
@@ -161,9 +161,6 @@ exports.sendEmail = functions.firestore.document("clientes/{clientId}")
 
           const qrCodeDataURL = await QRCode.toDataURL(JSON.stringify(qrData));
 
-          // Fondo y diseño del PDF
-          pdfDoc.rect(0, 0, pdfDoc.page.width, pdfDoc.page.height).fill("#FFFFFF");
-
           // Imagen de fondo
           pdfDoc.image(path.join(__dirname, "../assets/E-ticket.png"), {
             fit: [pdfDoc.page.width, pdfDoc.page.height],
@@ -171,42 +168,31 @@ exports.sendEmail = functions.firestore.document("clientes/{clientId}")
             valign: "center",
           });
 
-          // Header con el título del evento
-          pdfDoc.fillColor("#000000")
-              .font("Helvetica-Bold")
-              .fontSize(26)
-              .text("BOLIVIA BLOCKCHAIN SUMMIT 2024", { align: "center", valign: "top" })
-              .moveDown(1);
-
           // Información del asistente
-          pdfDoc.fillColor("#000000")
+          pdfDoc.fillColor("#0D47A1")
               .font("Helvetica-Bold")
               .fontSize(16)
-              .text(`${data.firstName} ${data.lastName}`, { align: "right" })
-              .moveDown(0.5);
+              .text(`${data.firstName} ${data.lastName}`, 40, 250, { align: "left" });
 
           pdfDoc.font("Helvetica")
               .fontSize(12)
               .fillColor("#000000")
-              .text(`Email: ${data.email}`, { align: "right" })
-              .moveDown(0.2)
-              .text(`Teléfono: ${data.phone}`, { align: "right" })
-              .moveDown(0.2)
-              .text(`Profesión: ${data.profession || "N/A"}`, { align: "right" });
-
-          pdfDoc.moveDown(1);
+              .text(`Email: ${data.email}`, 40, 270, { align: "left" })
+              .moveDown(0.5)
+              .text(`Teléfono: ${data.phone}`, { align: "left" })
+              .moveDown(0.5)
+              .text(`Profesión: ${data.profession || "N/A"}`, { align: "left" });
 
           // Fecha y hora del evento
-          pdfDoc.fontSize(16)
+          pdfDoc.font("Helvetica-Bold")
+              .fontSize(16)
               .fillColor("#0D47A1")
-              .text("20 AGO 2024 | 11:00 AM", { align: "right" })
+              .text("20 AGO 2024 | 11:00 AM", 40, 350, { align: "left" })
               .moveDown(0.2)
-              .text("Santa Cruz de la Sierra", { align: "right" });
-
-          pdfDoc.moveDown(1);
+              .text("Santa Cruz de la Sierra", { align: "left" });
 
           // Código QR
-          pdfDoc.image(qrCodeDataURL, pdfDoc.page.width - 220, pdfDoc.y, { fit: [200, 200] });
+          pdfDoc.image(qrCodeDataURL, 500, 270, { fit: [200, 200] });
 
           pdfDoc.end();
 
