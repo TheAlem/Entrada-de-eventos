@@ -129,49 +129,53 @@ const EntryQR = () => {
 
   return (
     <div className="flex flex-col items-center min-h-screen bg-gray-100 justify-center p-2 md:p-5">
-      <div id="ticketContainer" className="relative w-full max-w-4xl bg-cover bg-center rounded-3xl shadow-md overflow-hidden" style={{ backgroundImage: `url(${backgroundImage})`, height: '700px'}}>
-        <div className="absolute inset-0 flex flex-col justify-center items-center bg-white bg-opacity-90 rounded-2xl p-6 shadow-sm" style={{ top: '15%', left: '40%', right: '10%', bottom: '20%' }}>
-          <div className="flex flex-col justify-between h-full w-full md:w-auto">
-            <div>
-              <h2 className={`text-xl md:text-2xl font-bold ${textColor} mb-4 text-center`}>{entry.firstName} {entry.lastName}</h2>
-              <p className={`text-sm md:text-base ${textColor} mb-2 text-center`}><strong>Email:</strong> {entry.email}</p>
-              <p className={`text-sm md:text-base ${textColor} mb-2 text-center`}><strong>Teléfono:</strong> {entry.phone}</p>
-              {isStudent ? (
-                <p className={`text-sm md:text-base ${textColor} mb-2 text-center`}><strong>Universidad:</strong> {entry.universityName}</p>
-              ) : (
-                <>
-                  <p className={`text-sm md:text-base ${textColor} mb-2 text-center`}><strong>Profesión:</strong> {entry.profession}</p>
-                  <p className={`text-sm md:text-base ${textColor} mb-2 text-center`}><strong>Empresa:</strong> {entry.companyName}</p>
-                </>
-              )}
-            </div>
-            <div className="flex flex-col items-center">
-              <p className={`text-base md:text-lg font-bold ${textColor} mt-4 text-center`}>20 AGO 2024 | 8:30 AM</p>
-              <p className={`text-sm md:text-base ${textColor} text-center`}>Santa Cruz de la Sierra</p>
-              <div className="flex justify-center mt-4">
-                <QRCode
-                  value={JSON.stringify({
-                    firstName: entry.firstName,
-                    lastName: entry.lastName,
-                    email: entry.email,
-                    phone: entry.phone,
-                    academicLevel: entry.academicLevel,
-                    profession: entry.profession,
-                    token: entry.token,
-                    paymentStatus: entry.paymentStatus
-                  })}
-                  size={150}
-                  level="H"
-                  includeMargin={false}
-                  renderAs="svg"
-                />
+      <div id="ticketContainer" className="relative w-full max-w-4xl overflow-hidden">
+        <div className="aspect-[12/9] w-full">
+          <img src={backgroundImage} alt="Ticket background" className="w-full h-full object-cover rounded-xl" />
+          <div className="absolute inset-0 flex items-center justify-end" style={{ paddingRight: '10%' }}>
+            <div className="w-[55%] h-[70%] bg-white bg-opacity-90 rounded-2xl p-4 flex flex-col justify-between">
+              <div className="space-y-[2%]">
+                <h2 className={`text-[2vw] md:text-[1.5vw] font-bold ${textColor} text-center`}>{entry.firstName} {entry.lastName}</h2>
+                <p className={`text-[1.5vw] md:text-[1vw] ${textColor} text-center`}><strong>Email:</strong> {entry.email}</p>
+                <p className={`text-[1.5vw] md:text-[1vw] ${textColor} text-center`}><strong>Teléfono:</strong> {entry.phone}</p>
+                {isStudent ? (
+                  <p className={`text-[1.5vw] md:text-[1vw] ${textColor} text-center`}><strong>Universidad:</strong> {entry.universityName}</p>
+                ) : (
+                  <>
+                    <p className={`text-[1.5vw] md:text-[1vw] ${textColor} text-center`}><strong>Profesión:</strong> {entry.profession}</p>
+                    <p className={`text-[1.5vw] md:text-[1vw] ${textColor} text-center`}><strong>Empresa:</strong> {entry.companyName}</p>
+                  </>
+                )}
+              </div>
+              <div className="flex flex-col items-center">
+                <p className={`text-[2vw] md:text-[1.5vw] font-bold ${textColor} text-center`}>20 AGO 2024 | 8:30 AM</p>
+                <p className={`text-[1.5vw] md:text-[1vw] ${textColor} text-center`}>Santa Cruz de la Sierra</p>
+                <div className="mt-[2%] w-[30%] aspect-square">
+                  <QRCode
+                    value={JSON.stringify({
+                      firstName: entry.firstName,
+                      lastName: entry.lastName,
+                      email: entry.email,
+                      phone: entry.phone,
+                      academicLevel: entry.academicLevel,
+                      profession: entry.profession,
+                      token: entry.token,
+                      paymentStatus: entry.paymentStatus
+                    })}
+                    size={250}
+                    level="H"
+                    includeMargin={false}
+                    renderAs="svg"
+                    className="w-full h-full"
+                  />
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
       <button
-        className="mt-6 px-4 md:px-6 py-2 md:py-3 bg-green-500 text-white text-base md:text-lg rounded-lg cursor-pointer hover:bg-green-600 shadow-sm w-full max-w-xs"
+        className="mt-6 px-4 md:px-6 py-2 md:py-3 bg-green-500 text-white text-sm md:text-lg rounded-lg cursor-pointer hover:bg-green-600 shadow-sm w-full max-w-xs"
         onClick={handleDownload}
       >
         Descargar Ticket
