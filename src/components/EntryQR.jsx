@@ -57,7 +57,7 @@ const EntryQR = () => {
 
   const handleDownload = async () => {
     try {
-      if (downloadCount < 2) {
+      if (downloadCount < 15) {
         const element = document.querySelector("#ticketContainer");
         await new Promise(r => setTimeout(r, 500));
         const canvas = await html2canvas(element, {
