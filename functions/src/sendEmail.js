@@ -168,42 +168,52 @@ exports.sendEmail = functions.firestore.document("clientes/{clientId}")
             valign: "center",
           });
 
+          const centerX = pdfDoc.page.width / 2;
+          const textStartY = 120; // Posición Y inicial para los textos más arriba
           const leftMargin = 450; // Ajuste del margen izquierdo
-          const topMargin = 150; // Margen superior para colocar los textos más alto
+          const topMargin = 70; // Margen superior reducido para colocar los textos y el QR más arriba
 
-          // Determinar el color de los textos basado en el nivel académico
+          // Selección del color del texto basado en el nivel académico
           const textColor = data.academicLevel === "Student" ? "#183c33" : "#1A73E8";
 
-          // Información del asistente con estilo similar a la página web
+          // Información del asistente centrada
           pdfDoc.fillColor(textColor)
               .font("Helvetica-Bold")
               .fontSize(22)
-              .text(`${data.firstName} ${data.lastName}`, leftMargin, topMargin, { align: "left" });
+              .text(`${data.firstName} ${data.lastName}`, centerX, textStartY, { align: "center" });
+
+          // Ajustar la altura de los siguientes textos en función de la cantidad de texto
+          let currentY = textStartY + 30;
 
           pdfDoc.font("Helvetica")
               .fontSize(16)
               .fillColor(textColor)
-              .text(`Email: ${data.email}`, leftMargin, topMargin + 40, { align: "left" })
-              .moveDown(0.5)
-              .text(`Teléfono: ${data.phone}`, { align: "left" });
+              .text(`Email: ${data.email}`, centerX, currentY, { align: "center" });
 
+          currentY += 20;
+          pdfDoc.text(`Teléfono: ${data.phone}`, centerX, currentY, { align: "center" });
+
+          currentY += 20;
           if (data.academicLevel === "Student") {
-            pdfDoc.text(`Universidad: ${data.universityName}`, leftMargin, topMargin + 80, { align: "left" });
+            pdfDoc.text(`Universidad: ${data.universityName}`, centerX, currentY, { align: "center" });
           } else {
-            pdfDoc.text(`Profesión: ${data.profession}`, leftMargin, topMargin + 80, { align: "left" })
-                .moveDown(0.5)
-                .text(`Empresa: ${data.companyName}`, { align: "left" });
+            pdfDoc.text(`Profesión: ${data.profession}`, centerX, currentY, { align: "center" });
+            currentY += 20;
+            pdfDoc.text(`Empresa: ${data.companyName}`, centerX, currentY, { align: "center" });
           }
 
-          // Fecha y hora del evento
+          currentY += 40; // Espacio antes de la fecha y hora
           pdfDoc.font("Helvetica-Bold")
               .fontSize(20)
               .fillColor(textColor)
-              .text("20 AGO 2024 | 08:30 AM", leftMargin, topMargin + 160, { align: "left" })
-              .moveDown(0.2)
-              .text("Santa Cruz de la Sierra", { align: "left" });
+              .text("20 AGO 2024 | 08:30 AM", centerX, currentY, { align: "center" });
 
-          // Código QR centrado
+          currentY += 20;
+          pdfDoc.text("Hotel Los Tajibos", centerX, currentY, { align: "center" });
+
+          currentY += 40; // Espacio antes del QR
+
+          // Código QR centrado justo debajo de los datos
           const qrCodeWidth = 180;
           pdfDoc.image(qrCodeDataURL, leftMargin + 50, topMargin + 220, {
             width: qrCodeWidth,

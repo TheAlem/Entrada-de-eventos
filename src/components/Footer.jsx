@@ -5,7 +5,7 @@ function Footer() {
         <footer className="shadow-md border-t border-gray-700 py-8 " style={{ backgroundColor: '#183c33' }}>
             <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
                 <div className="text-gray-200 text-center md:text-left mb-4 md:mb-0">
-                    <h2 className="text-xl font-bold">Evento de Blockchain</h2>
+                    <h2 className="text-xl font-bold">BOLIVIA BLOCKCHAIN SUMMIT</h2>
                     <p className="text-sm">© 2024 The Alem. Todos los derechos reservados.</p>
                 </div>
                 <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-8 text-center md:text-left">
