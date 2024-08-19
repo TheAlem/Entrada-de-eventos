@@ -58,26 +58,32 @@ const PersonalDataForm = () => {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
+    e.preventDefault();
+    setLoading(true);
+    
+    // Limpiar el token anterior si existe
+    if (token) {
+      clearSession();
+    }
   
-  // Destruir el token anterior antes de generar uno nuevo
-  if (token) {
-    clearSession();  // Limpiar el token anterior
-  }
-
-  const userToken = generateAndStoreToken();  // Generar y almacenar el nuevo token
-  const formDataWithToken = { ...formData, token: userToken };
-
-  const result = await saveDataToFirestore(formDataWithToken);
-  setLoading(false);
-  if (result.success) {
-    // Redirigir a la página de pago directamente, sin esperar aprobación
-    window.location.href = `/payment/${userToken}?level=${formData.academicLevel}`;
-  } else {
-    alert('Error al enviar los datos');
-  }
-};
+    const userToken = generateAndStoreToken();
+    const formDataWithToken = { ...formData, token: userToken };
+  
+    try {
+      const result = await saveDataToFirestore(formDataWithToken);
+      if (result.success) {
+        window.location.href = `/payment/${userToken}?level=${formData.academicLevel}`;
+      } else {
+        setMessage('Error al enviar los datos: ' + result.message);
+      }
+    } catch (error) {
+      setMessage('Error al conectar con el servidor: ' + error.message);
+      console.error('Error en saveDataToFirestore:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
