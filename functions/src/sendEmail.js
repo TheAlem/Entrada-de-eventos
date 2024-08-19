@@ -140,7 +140,7 @@ exports.sendEmail = functions.firestore.document("clientes/{clientId}")
 
         const lastEmailSent = data.lastEmailSent ? data.lastEmailSent.toDate() : null;
         const now = new Date();
-        const oneHourAgo = new Date(now.getTime() - (60 * 60 * 1000)); // Hace una hora
+        const oneHourAgo = new Date(now.getTime() - (60 * 60 * 1000));
 
         if (lastEmailSent && lastEmailSent > oneHourAgo) {
           console.log("Correo ya enviado hace menos de una hora. No se envía nuevamente.");
@@ -148,7 +148,7 @@ exports.sendEmail = functions.firestore.document("clientes/{clientId}")
         }
 
         const pdfPath = path.join(os.tmpdir(), `${data.token}.pdf`);
-        const pdfDoc = new PDFDocument({ size: [792, 612], margin: 0 }); // Tamaño carta en puntos
+        const pdfDoc = new PDFDocument({ size: [792, 612], margin: 0 });
         const stream = fs.createWriteStream(pdfPath);
         pdfDoc.pipe(stream);
 
@@ -168,33 +168,48 @@ exports.sendEmail = functions.firestore.document("clientes/{clientId}")
             valign: "center",
           });
 
-          // Ajuste del margen izquierdo
-          const leftMargin = 480;
+          const leftMargin = 450; // Ajuste del margen izquierdo
+          const topMargin = 150; // Margen superior para colocar los textos más alto
 
-          // Información del asistente
-          pdfDoc.fillColor("#0D47A1")
+          // Determinar el color de los textos basado en el nivel académico
+          const textColor = data.academicLevel === "Student" ? "#183c33" : "#1A73E8";
+
+          // Información del asistente con estilo similar a la página web
+          pdfDoc.fillColor(textColor)
               .font("Helvetica-Bold")
-              .fontSize(16)
-              .text(`${data.firstName} ${data.lastName}`, leftMargin, 200, { align: "left" });
+              .fontSize(22)
+              .text(`${data.firstName} ${data.lastName}`, leftMargin, topMargin, { align: "left" });
 
           pdfDoc.font("Helvetica")
-              .fontSize(12)
-              .fillColor("#000000")
-              .text(`Email: ${data.email}`, leftMargin, 230, { align: "left" })
+              .fontSize(16)
+              .fillColor(textColor)
+              .text(`Email: ${data.email}`, leftMargin, topMargin + 40, { align: "left" })
               .moveDown(0.5)
               .text(`Teléfono: ${data.phone}`, { align: "left" });
 
+          if (data.academicLevel === "Student") {
+            pdfDoc.text(`Universidad: ${data.universityName}`, leftMargin, topMargin + 80, { align: "left" });
+          } else {
+            pdfDoc.text(`Profesión: ${data.profession}`, leftMargin, topMargin + 80, { align: "left" })
+                .moveDown(0.5)
+                .text(`Empresa: ${data.companyName}`, { align: "left" });
+          }
+
           // Fecha y hora del evento
           pdfDoc.font("Helvetica-Bold")
-              .fontSize(16)
-              .fillColor("#0D47A1")
-              .text("20 AGO 2024 | 08:30 AM", leftMargin, 300, { align: "left" })
+              .fontSize(20)
+              .fillColor(textColor)
+              .text("20 AGO 2024 | 08:30 AM", leftMargin, topMargin + 160, { align: "left" })
               .moveDown(0.2)
-              .text("Hotel Los Tajibos", { align: "left" });
+              .text("Santa Cruz de la Sierra", { align: "left" });
 
-          // Código QR centrado debajo de los textos
-          const qrCodeWidth = 150;
-          pdfDoc.image(qrCodeDataURL, leftMargin, 350, { width: qrCodeWidth, align: "left" });
+          // Código QR centrado
+          const qrCodeWidth = 180;
+          pdfDoc.image(qrCodeDataURL, leftMargin + 50, topMargin + 220, {
+            width: qrCodeWidth,
+            align: "center",
+            valign: "center",
+          });
 
           pdfDoc.end();
 

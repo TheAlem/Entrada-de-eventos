@@ -149,7 +149,7 @@ const EntryQR = () => {
               </div>
               <div className="flex flex-col items-center">
                 <p className={`text-[2vw] md:text-[1.5vw] font-bold ${textColor} text-center`}>20 AGO 2024 | 8:30 AM</p>
-                <p className={`text-[1.5vw] md:text-[1vw] ${textColor} text-center`}>Santa Cruz de la Sierra</p>
+                <p className={`text-[1.5vw] md:text-[1vw] ${textColor} text-center`}>Hotel Los Tajibos</p>
                 <div className="mt-[2%] w-[30%] aspect-square">
                   <QRCode
                     value={JSON.stringify({
