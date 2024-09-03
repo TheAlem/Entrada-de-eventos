@@ -368,14 +368,6 @@ import { useAuth } from '../../Firebase/context/AuthContext';
                             <strong>Estado del Pago:</strong>{' '}
                             {ticket.paymentStatus ? 'Pagado' : 'No Pagado'}
                         </p>
-                        <p>
-                            <strong>Estado:</strong>{' '}
-                            {ticket.status === 'approved'
-                            ? 'Aprobado'
-                            : ticket.status === 'rejected'
-                            ? 'Rechazado'
-                            : 'Pendiente'}
-                        </p>
                         </div>
                     </div>
                     )}

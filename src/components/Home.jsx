@@ -9,7 +9,7 @@ import repsol from '../assets/Sponsors/repsol.png';
 import TotalEnergies from '../assets/Sponsors/totalenergies.svg';
 import Toyota from '../assets/Sponsors/Toyota.svg';
 import AgroToken from '../assets/Sponsors/Agro.svg';
-import backgroundImage from '../assets/images/PlantaBK.jpg';
+import backgroundImage from '../assets/images/PlantaBK.avif';
 
 function Home() {
     const token = localStorage.getItem('userToken');
