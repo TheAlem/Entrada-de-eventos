@@ -6,7 +6,7 @@ import Step3 from '../assets/images/3.svg';
 function Home() {
     return (
         <div className="container mx-auto px-4 py-12">
-            <h1 className="text-5xl font-bold text-gray-800 text-center mb-8">Bienvenido al Evento de Blockchain</h1>
+            <h1 className="text-5xl font-bold text-gray-800 text-center mb-8">Bienvenido a TransaChain</h1>
             <p className="text-xl text-gray-600 text-center mb-12">Sigue los pasos para la compra de entradas del evento.</p>
             
             <div className="flex flex-wrap justify-center gap-16">
