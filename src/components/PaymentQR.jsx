@@ -97,7 +97,7 @@ const PaymentQR = () => {
           <>
             {qrImage? (
               <div className="mt-8 flex justify-center">
-                <img src={qrImage} alt="QR Code" className="w-64 h-64 object-contain border-2 border-gray-300 rounded-lg shadow-md" />
+                <img src={qrImage} alt="QR Code" className="w-100 h-100 object-contain border-2 border-gray-300 rounded-lg shadow-md" />
               </div>
             ) : (
               <div className="text-lg font-medium text-gray-700 text-center">No se pudo generar el QR</div>
