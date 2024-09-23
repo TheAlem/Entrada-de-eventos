@@ -6,8 +6,8 @@ import ClipLoader from 'react-spinners/ClipLoader';
 import 'tailwindcss/tailwind.css';
 
 const PaymentQR = () => {
-  const [qrImage, setQRImage] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [qrImage, setQRImage] = useState(''); // Base64 image string
+  const [loading, setLoading] = useState(true); // Estado inicializado en true para mostrar el loader inicialmente
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
@@ -34,28 +34,30 @@ const PaymentQR = () => {
   };
 
   const handleGenerateQR = async (clientToken) => {
-    setLoading(true);
+    setLoading(true); // Mostrar el loader mientras se genera el QR
     setError('');
-
+    setQRImage('');
+  
     try {
       if (!clientToken) {
         throw new Error('Token no disponible. Por favor, intenta nuevamente.');
       }
-
-      // Generar el QR a través de PagoFacil utilizando el token del cliente
+  
+      // Generar el QR utilizando el token del cliente con callbacks para manejar el éxito y error
       generateQRCode(clientToken, setQRImage, {
         onSuccess: () => {
           console.log('Código QR generado con éxito');
           checkPaymentStatus(clientToken); // Verificar el estado del pago tras generar el QR
+          setLoading(false); // Desactivar el estado de carga
         },
         onError: (errorMessage) => {
           setError(`Error al generar el QR: ${errorMessage}`);
+          setLoading(false); // Desactivar el estado de carga si hay un error
         }
       });
     } catch (err) {
       setError(`Error al generar el QR: ${err.message}`);
-    } finally {
-      setLoading(false);
+      setLoading(false); // Desactivar el estado de carga si hay un error
     }
   };
 
@@ -64,21 +66,23 @@ const PaymentQR = () => {
 
     if (!clientToken) {
       setError('Token no encontrado. Por favor, inicia sesión nuevamente.');
-      setLoading(false);
+      setLoading(false); // Desactivar el loader ya que no hay un token disponible
       return;
     }
 
     handleGenerateQR(clientToken); // Generar el QR al cargar el componente
   }, []);
 
+  // Función para descargar el QR
   const handleDownloadQR = () => {
     if (qrImage) {
+      // Crear un enlace temporal para descargar el QR
       const link = document.createElement('a');
-      link.href = `data:image/png;base64,${qrImage}`;
-      link.download = 'qr_code.png';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      link.href = qrImage; // Aquí usamos el valor base64 directamente como href
+      link.download = 'qr_code.png'; // Nombre del archivo
+      document.body.appendChild(link); // Añadir el link al DOM
+      link.click(); // Simular el clic
+      document.body.removeChild(link); // Eliminar el link después de la descarga
     } else {
       setError('QR no disponible para descargar.');
     }
@@ -91,11 +95,11 @@ const PaymentQR = () => {
         {loading ? (
           <div className="flex flex-col items-center">
             <ClipLoader size={50} color={"#4CAF50"} loading={loading} />
-            <p className="mt-4 text-lg font-medium text-gray-700">Generando QR...</p>
+            <p className="mt-4 text-lg font-medium text-gray-700">Generando QR, por favor espera...</p>
           </div>
         ) : (
           <>
-            {qrImage? (
+            {qrImage ? (
               <div className="mt-8 flex justify-center">
                 <img src={qrImage} alt="QR Code" className="w-100 h-100 object-contain border-2 border-gray-300 rounded-lg shadow-md" />
               </div>
