@@ -1,7 +1,7 @@
-import $ from 'jquery';
+import $, { post } from 'jquery';
 import qs from 'qs';
 import { collection, getDocs, query, where, doc, updateDoc } from 'firebase/firestore';
-import { db } from '../../firebase-config'; // Asegúrate de tener bien configurada tu instancia de Firebase
+import { db } from '../../firebase-config.js'; // Importa la configuración de Firebase
 import { getNextPaymentNumber } from './pagos'; // Importa tu función de generación de PedidoID
 
 // Función para generar el código QR con PagoFacil
@@ -22,8 +22,8 @@ export const generateQRCode = async (clientToken, setQRImage, callbacks) => {
     const clientId = clientDoc.id; // Obtener el ID del documento
     const paymentAmount = clientData.academicLevel === 'Student' ? 100 : 200; // 100 BOB para estudiantes, 200 BOB para profesionales
 
-    // Verificar si ya existe un PedidoID o generar uno nuevo con getNextPaymentNumber()
-    const PedidoID = clientData.PedidoID || await getNextPaymentNumber();
+    // Generar un nuevo PedidoID
+    const PedidoID = await getNextPaymentNumber();  // Siempre generar un nuevo PedidoID
 
     // Datos para la solicitud de generación de QR
     const postData = {
@@ -32,8 +32,8 @@ export const generateQRCode = async (clientToken, setQRImage, callbacks) => {
       tnTelefono: clientData.phone || "777777",
       tcCorreo: clientData.email,
       tcNombreUsuario: `${clientData.firstName} ${clientData.lastName}`,
-      tnCiNit: clientData.ci || "123465",
-      tcNroPago: PedidoID, // Usar PedidoID aquí generado o recuperado
+      tnCiNit: clientData.ci || "12345678",
+      tcNroPago: PedidoID, // Usar el nuevo PedidoID generado
       tnMontoClienteEmpresa: 0.01,
       tcUrlCallBack: "https://us-central1-transachain.cloudfunctions.net/paymentCallback",
       tcUrlReturn: "",
@@ -75,13 +75,13 @@ export const generateQRCode = async (clientToken, setQRImage, callbacks) => {
         // Usar el método `doc` para obtener la referencia del documento por su ID
         const clientRef = doc(db, 'clientes', clientId);
 
-        // Actualizar Firestore con el PedidoID y el QR generado
+        // Actualizar Firestore con el nuevo PedidoID y el QR generado
         await updateDoc(clientRef, {
-          PedidoID,  // Guardar el PedidoID en Firestore si no existe
-          qrCode: `data:image/png;base64,${qrBase64}` // Guardar el QR
+          PedidoID,  // Guardar el nuevo PedidoID en Firestore
+          qrCode: `data:image/png;base64,${qrBase64}` // Guardar el QR generado
         });
 
-        callbacks.onSuccess('Código QR generado con éxito');
+        callbacks.onSuccess(PedidoID, `data:image/png;base64,${qrBase64}`);
       } else {
         callbacks.onError('QR base64 no encontrado en la respuesta.');
       }

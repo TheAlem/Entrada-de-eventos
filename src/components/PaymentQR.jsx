@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { generateQRCode } from '../Firebase/Api/Controller/PagoFacil'; // Función para PagoFacil
-import { getFirestore, query, where, collection, getDocs } from 'firebase/firestore';
+import { getFirestore, query, where, collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 import ClipLoader from 'react-spinners/ClipLoader';
 import 'tailwindcss/tailwind.css';
 
@@ -72,9 +72,10 @@ const PaymentQR = () => {
 
       if (!clientsSnapshot.empty) {
         const clientDoc = clientsSnapshot.docs[0];
+        const clientRef = doc(db, 'clientes', clientDoc.id); // Obtener la referencia correcta
 
-        // Usar la referencia del documento para la actualización
-        await clientDoc.ref.update({
+        // Usar `updateDoc` en lugar de `clientDoc.ref.update`
+        await updateDoc(clientRef, {
           PedidoID,  // Guardar el PedidoID en Firestore
           qrCode: qrCode,  // Guardar el código QR en Firestore
         });
