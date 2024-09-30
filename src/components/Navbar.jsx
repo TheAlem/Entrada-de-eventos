@@ -25,37 +25,38 @@ function Navbar() {
         };
     }, []);
 
-    const navbarClass = `fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out 
-        bg-white bg-opacity-20 backdrop-blur-lg shadow-md ${isScrolled ? 'py-2' : 'py-4'} rounded-b-xl`;
+    const navbarClass = `fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out
+        ${isScrolled || !isHomePage ? 'bg-white bg-opacity-80 shadow-md' : 'bg-transparent'}
+        backdrop-filter backdrop-blur-lg ${isScrolled ? 'py-2' : 'py-4'} rounded-b-xl`;
 
-    const eventLinkClass = `hover:text-green-500 transition duration-300 ease-in-out transform hover:-translate-y-1
-        ${isHomePage && !isScrolled ? 'text-white' : 'text-gray-800'}`;
-
-    const linkClass = `relative overflow-hidden group
-        ${isHomePage && !isScrolled ? 'text-white' : 'text-gray-800'}`;
+    const linkClass = `relative group px-3 py-2 text-sm font-medium
+        ${isHomePage && !isScrolled ? 'text-white mix-blend-difference' : 'text-gray-800'}
+        transition duration-300 ease-in-out`;
 
     const underlineClass = `absolute bottom-0 left-0 w-full h-0.5 bg-green-500 transform scale-x-0 
         group-hover:scale-x-100 transition-transform duration-300 ease-out origin-left`;
 
-    const mobileMenuClass = `md:hidden fixed top-0 left-0 right-0 bg-[#183c33] bg-opacity-95 backdrop-blur-xl shadow-lg rounded-b-lg 
-        transition-transform duration-500 ease-in-out text-white transform ${isMobileMenuOpen ? 'translate-y-0' : '-translate-y-full'} z-40`;
+    const mobileMenuClass = `md:hidden fixed top-0 left-0 right-0 bg-white bg-opacity-95 backdrop-blur-xl shadow-lg rounded-b-lg
+        transition-transform duration-500 ease-in-out transform ${isMobileMenuOpen ? 'translate-y-0' : '-translate-y-full'} z-40`;
 
-    const mobileLinkClass = `flex px-4 py-3 hover:bg-[#1f4d40] rounded-md transition-colors duration-300 ease-in-out`;
+    const mobileLinkClass = `flex px-6 py-4 text-gray-800 hover:bg-gray-100 rounded-md transition-colors duration-300 ease-in-out`;
 
-    const closeIconClass = `absolute top-4 right-4 text-white text-2xl cursor-pointer`;
+    const closeIconClass = `absolute top-4 right-4 text-gray-800 text-2xl cursor-pointer`;
 
     return (
         <nav className={navbarClass}>
-            <div className="container mx-auto px-4 flex justify-between items-center">
+            <div className="container mx-auto px-6 flex justify-between items-center">
                 <div className="text-2xl font-extrabold">
-                    <Link to="/" className={eventLinkClass}>BOLIVIA BLOCKCHAIN SUMMIT</Link>
+                    <Link to="/" className={`${linkClass} font-logo`}>
+                        BOLIVIA BLOCKCHAIN SUMMIT
+                    </Link>
                 </div>
-                <div className="hidden md:flex space-x-6">
+                <div className="hidden md:flex space-x-4">
                     <Link to="/personal-data" className={linkClass}>
                         Datos Personales
                         <span className={underlineClass}></span>
                     </Link>
-                    <Link  to={`/payment/${token}`} className={linkClass}>
+                    <Link to={`/payment/${token}`} className={linkClass}>
                         Pago
                         <span className={underlineClass}></span>
                     </Link>
@@ -63,13 +64,17 @@ function Navbar() {
                         Entrada
                         <span className={underlineClass}></span>
                     </Link>
-                    <Link to="/login" className={`${eventLinkClass} flex items-center`}>
-                        <FaUserCircle className="text-2xl" />
+                    <Link to="/login" className={`${linkClass} flex items-center`}>
+                        <FaUserCircle className="text-xl mr-1" /> 
                     </Link>
                 </div>
                 <div className="md:hidden flex items-center">
-                    <button onClick={toggleMobileMenu} className={`focus:outline-none ${eventLinkClass}`}>
-                        {isMobileMenuOpen ? <FaTimes className="text-2xl" /> : <FaBars className="text-2xl" />}
+                    <button onClick={toggleMobileMenu} className="focus:outline-none">
+                        {isMobileMenuOpen ? (
+                            <FaTimes className="text-2xl text-gray-800" />
+                        ) : (
+                            <FaBars className="text-2xl text-gray-800" />
+                        )}
                     </button>
                 </div>
             </div>
@@ -77,18 +82,20 @@ function Navbar() {
                 {isMobileMenuOpen && (
                     <FaTimes className={closeIconClass} onClick={toggleMobileMenu} />
                 )}
-                <Link to="/personal-data" className={mobileLinkClass} onClick={toggleMobileMenu}>
-                    Datos Personales
-                </Link>
-                <Link to={`/payment/${token}`} className={mobileLinkClass} onClick={toggleMobileMenu}>
-                    Pago
-                </Link>
-                <Link to={`/entry/${token}`} className={mobileLinkClass} onClick={toggleMobileMenu}>
-                    Entrada
-                </Link>
-                <Link to="/login" className={`${mobileLinkClass} flex items-center`} onClick={toggleMobileMenu}>
-                    <FaUserCircle className="text-2xl mr-2" /> Login
-                </Link>
+                <div className="mt-12 flex flex-col space-y-2 px-4">
+                    <Link to="/personal-data" className={mobileLinkClass} onClick={toggleMobileMenu}>
+                        Datos Personales
+                    </Link>
+                    <Link to={`/payment/${token}`} className={mobileLinkClass} onClick={toggleMobileMenu}>
+                        Pago
+                    </Link>
+                    <Link to={`/entry/${token}`} className={mobileLinkClass} onClick={toggleMobileMenu}>
+                        Entrada
+                    </Link>
+                    <Link to="/login" className={mobileLinkClass} onClick={toggleMobileMenu}>
+                        <FaUserCircle className="text-xl mr-2" />
+                    </Link>
+                </div>
             </div>
         </nav>
     );

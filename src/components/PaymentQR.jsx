@@ -45,9 +45,12 @@ const PaymentQR = () => {
   
       // Generar el QR utilizando el token del cliente con callbacks para manejar el éxito y error
       generateQRCode(clientToken, setQRImage, {
-        onSuccess: () => {
+        onSuccess: async (PedidoID, qrCode) => {
           console.log('Código QR generado con éxito');
-          checkPaymentStatus(clientToken); // Verificar el estado del pago tras generar el QR
+          
+          // Verificar el estado del pago tras generar el QR
+          await updateClientPaymentInfo(clientToken, PedidoID, qrCode);
+          checkPaymentStatus(clientToken);
           setLoading(false); // Desactivar el estado de carga
         },
         onError: (errorMessage) => {
@@ -58,6 +61,30 @@ const PaymentQR = () => {
     } catch (err) {
       setError(`Error al generar el QR: ${err.message}`);
       setLoading(false); // Desactivar el estado de carga si hay un error
+    }
+  };
+
+  const updateClientPaymentInfo = async (clientToken, PedidoID, qrCode) => {
+    try {
+      const db = getFirestore();
+      const clientsQuery = query(collection(db, 'clientes'), where('token', '==', clientToken));
+      const clientsSnapshot = await getDocs(clientsQuery);
+
+      if (!clientsSnapshot.empty) {
+        const clientDoc = clientsSnapshot.docs[0];
+
+        // Usar la referencia del documento para la actualización
+        await clientDoc.ref.update({
+          PedidoID,  // Guardar el PedidoID en Firestore
+          qrCode: qrCode,  // Guardar el código QR en Firestore
+        });
+
+        console.log('Información de pago actualizada en Firestore');
+      } else {
+        setError('No se encontró información del cliente para actualizar.');
+      }
+    } catch (error) {
+      setError(`Error al actualizar la información del cliente: ${error.message}`);
     }
   };
 

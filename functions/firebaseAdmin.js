@@ -2,7 +2,7 @@ const admin = require("firebase-admin");
 
 if (!admin.apps.length) {
   admin.initializeApp({
-    credential: admin.credential.cert(require("./energiaboliviappandroid-firebase-adminsdk-9vht4-7eba2d155c.json")),
+    credential: admin.credential.cert(require("./transachain-firebase-adminsdk-m3b7q-7cdfe6cbd7.json")),
   });
 }
 
