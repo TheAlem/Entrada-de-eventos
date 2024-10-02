@@ -1,9 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { saveDataToFirestore } from '../Firebase/PersonalData/BkForm'; 
+import { saveDataToFirestore } from '../Firebase/PersonalData/BkForm';
 import { useToken } from '../Firebase/context/TokenContext';
 import ClipLoader from 'react-spinners/ClipLoader';
 import 'tailwindcss/tailwind.css';
+import {
+  AiOutlineUser,
+  AiOutlineMail,
+  AiOutlinePhone,
+} from 'react-icons/ai';
+import { BsBuilding, BsCalendar } from 'react-icons/bs';
+import { FaUniversity, FaRegIdBadge } from 'react-icons/fa';
 
 const PersonalDataForm = () => {
   const [formData, setFormData] = useState({
@@ -25,16 +32,14 @@ const PersonalDataForm = () => {
 
   useEffect(() => {
     if (token) {
-      const interval = setInterval(() => {
-      }, 5000);
-
+      const interval = setInterval(() => {}, 5000);
       return () => clearInterval(interval);
     }
   }, [token]);
 
   const generateAndStoreToken = () => {
     const newToken = uuidv4();
-    updateToken(newToken);  // Esto reemplaza el token anterior con el nuevo
+    updateToken(newToken);
     return newToken;
   };
 
@@ -44,7 +49,7 @@ const PersonalDataForm = () => {
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    if (name === "studentId") {
+    if (name === 'studentId') {
       setFormData({
         ...formData,
         [name]: files[0],
@@ -60,15 +65,14 @@ const PersonalDataForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    
-    // Limpiar el token anterior si existe
+
     if (token) {
       clearSession();
     }
-  
+
     const userToken = generateAndStoreToken();
     const formDataWithToken = { ...formData, token: userToken };
-  
+
     try {
       const result = await saveDataToFirestore(formDataWithToken);
       if (result.success) {
@@ -83,69 +87,94 @@ const PersonalDataForm = () => {
       setLoading(false);
     }
   };
-  
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-3xl">
-        <h2 className="text-4xl font-bold text-gray-800 mb-8 text-center">Datos Personales</h2>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-3xl">
+        <h2 className="text-4xl font-bold text-gray-800 mb-8 text-center">
+          Datos Personales
+        </h2>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Nombre */}
             <div className="relative">
-              <input
-                type="text"
-                name="firstName"
-                id="firstName"
-                value={formData.firstName}
-                onChange={handleChange}
-                className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 placeholder-transparent pt-4 pb-1 transition-colors duration-300 ease-in-out"
-                placeholder="Nombre"
-                required
-                pattern="[A-Za-z\s]+"
-                title="Solo se permiten letras y espacios"
-              />
-              <label htmlFor="firstName" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Nombre</label>
+              <label htmlFor="firstName" className="text-gray-600">
+                Nombre
+              </label>
+              <div className="flex items-center mt-1">
+                <AiOutlineUser className="text-gray-400 mr-2" size={24} />
+                <input
+                  type="text"
+                  name="firstName"
+                  id="firstName"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  className="w-full border-b-2 border-gray-300 focus:border-green-600 focus:outline-none py-1 transition-colors duration-300 ease-in-out"
+                  placeholder="Ingrese su nombre"
+                  required
+                  pattern="[A-Za-z\s]+"
+                  title="Solo se permiten letras y espacios"
+                />
+              </div>
             </div>
+            {/* Apellidos */}
             <div className="relative">
-              <input
-                type="text"
-                name="lastName"
-                id="lastName"
-                value={formData.lastName}
-                onChange={handleChange}
-                className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 placeholder-transparent pt-4 pb-1 transition-colors duration-300 ease-in-out"
-                placeholder="Apellidos"
-                required
-                pattern="[A-Za-z\s]+"
-                title="Solo se permiten letras y espacios"
-              />
-              <label htmlFor="lastName" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Apellidos</label>
+              <label htmlFor="lastName" className="text-gray-600">
+                Apellidos
+              </label>
+              <div className="flex items-center mt-1">
+                <AiOutlineUser className="text-gray-400 mr-2" size={24} />
+                <input
+                  type="text"
+                  name="lastName"
+                  id="lastName"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  className="w-full border-b-2 border-gray-300 focus:border-green-600 focus:outline-none py-1 transition-colors duration-300 ease-in-out"
+                  placeholder="Ingrese sus apellidos"
+                  required
+                  pattern="[A-Za-z\s]+"
+                  title="Solo se permiten letras y espacios"
+                />
+              </div>
             </div>
           </div>
+          {/* Fecha de Nacimiento */}
           <div className="relative">
-            <input
-              type="date"
-              name="birthDate"
-              id="birthDate"
-              value={formData.birthDate}
-              onChange={handleChange}
-              className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 placeholder-transparent pt-4 pb-1 transition-colors duration-300 ease-in-out"
-              required
-              min="1900-01-01"
-              max={new Date().toISOString().split("T")[0]}
-            />
-            <label htmlFor="birthDate" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Fecha de Nacimiento</label>
+            <label htmlFor="birthDate" className="text-gray-600">
+              Fecha de Nacimiento
+            </label>
+            <div className="flex items-center mt-1">
+              <BsCalendar className="text-gray-400 mr-2" size={24} />
+              <input
+                type="date"
+                name="birthDate"
+                id="birthDate"
+                value={formData.birthDate}
+                onChange={handleChange}
+                className="w-full border-b-2 border-gray-300 focus:border-green-600 focus:outline-none py-1 transition-colors duration-300 ease-in-out"
+                required
+                min="1900-01-01"
+                max={new Date().toISOString().split('T')[0]}
+              />
+            </div>
           </div>
+          {/* País */}
           <div className="relative">
+            <label htmlFor="country" className="text-gray-600">
+              País
+            </label>
             <select
               name="country"
               id="country"
               value={formData.country}
               onChange={handleChange}
-              className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 bg-transparent pt-4 pb-1 transition-colors duration-300 ease-in-out"
+              className="w-full border-b-2 border-gray-300 focus:border-green-600 focus:outline-none bg-transparent py-1 mt-1 transition-colors duration-300 ease-in-out"
               required
             >
-              <option value="" disabled>Elija una opción</option>
+              <option value="" disabled>
+                Seleccione su país
+              </option>
               <option value="Bolivia">Bolivia +591</option>
               <option value="Argentina">Argentina +54</option>
               <option value="Chile">Chile +56</option>
@@ -155,122 +184,162 @@ const PersonalDataForm = () => {
               <option value="Mexico">México +52</option>
               <option value="United States">Estados Unidos +1</option>
             </select>
-            <label htmlFor="country" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">País</label>
           </div>
+          {/* Nivel Académico */}
           <div className="relative">
+            <label htmlFor="academicLevel" className="text-gray-600">
+              Nivel Académico
+            </label>
             <select
               name="academicLevel"
               id="academicLevel"
               value={formData.academicLevel}
               onChange={handleChange}
-              className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 bg-transparent pt-4 pb-1 transition-colors duration-300 ease-in-out"
+              className="w-full border-b-2 border-gray-300 focus:border-green-600 focus:outline-none bg-transparent py-1 mt-1 transition-colors duration-300 ease-in-out"
               required
             >
-              <option value="" disabled>Elija una opción</option>
+              <option value="" disabled>
+                Seleccione su nivel académico
+              </option>
               <option value="Student">Estudiante Universitario</option>
               <option value="Professional">Profesional</option>
             </select>
-            <label htmlFor="academicLevel" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Nivel Académico</label>
           </div>
+          {/* Campos adicionales según nivel académico */}
           {formData.academicLevel === 'Professional' && (
             <>
+              {/* Nombre de la Empresa */}
               <div className="relative">
-                <input
-                  type="text"
-                  name="companyName"
-                  id="companyName"
-                  value={formData.companyName}
-                  onChange={handleChange}
-                  className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 placeholder-transparent pt-4 pb-1 transition-colors duration-300 ease-in-out"
-                  placeholder="Nombre de la Empresa"
-                  required
-                  pattern="[A-Za-z\s]+"
-                  title="Solo se permiten letras y espacios"
-                />
-                <label htmlFor="companyName" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Nombre de la Empresa</label>
+                <label htmlFor="companyName" className="text-gray-600">
+                  Nombre de la Empresa
+                </label>
+                <div className="flex items-center mt-1">
+                  <BsBuilding className="text-gray-400 mr-2" size={24} />
+                  <input
+                    type="text"
+                    name="companyName"
+                    id="companyName"
+                    value={formData.companyName}
+                    onChange={handleChange}
+                    className="w-full border-b-2 border-gray-300 focus:border-green-600 focus:outline-none py-1 transition-colors duration-300 ease-in-out"
+                    placeholder="Ingrese el nombre de la empresa"
+                    required
+                    pattern="[A-Za-z\s]+"
+                    title="Solo se permiten letras y espacios"
+                  />
+                </div>
               </div>
+              {/* Profesión */}
               <div className="relative">
-                <input
-                  type="text"
-                  name="profession"
-                  id="profession"
-                  value={formData.profession}
-                  onChange={handleChange}
-                  className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 placeholder-transparent pt-4 pb-1 transition-colors duration-300 ease-in-out"
-                  placeholder="Profesión"
-                  required
-                  pattern="[A-Za-z\s]+"
-                  title="Solo se permiten letras y espacios"
-                />
-                <label htmlFor="profession" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Profesión</label>
+                <label htmlFor="profession" className="text-gray-600">
+                  Profesión
+                </label>
+                <div className="flex items-center mt-1">
+                  <AiOutlineUser className="text-gray-400 mr-2" size={24} />
+                  <input
+                    type="text"
+                    name="profession"
+                    id="profession"
+                    value={formData.profession}
+                    onChange={handleChange}
+                    className="w-full border-b-2 border-gray-300 focus:border-green-600 focus:outline-none py-1 transition-colors duration-300 ease-in-out"
+                    placeholder="Ingrese su profesión"
+                    required
+                    pattern="[A-Za-z\s]+"
+                    title="Solo se permiten letras y espacios"
+                  />
+                </div>
               </div>
             </>
           )}
           {formData.academicLevel === 'Student' && (
             <>
+              {/* Nombre de la Universidad */}
               <div className="relative">
-                <input
-                  type="text"
-                  name="universityName"
-                  id="universityName"
-                  value={formData.universityName}
-                  onChange={handleChange}
-                  className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 placeholder-transparent pt-4 pb-1 transition-colors duration-300 ease-in-out"
-                  placeholder="Nombre de la Universidad"
-                  required
-                  pattern="[A-Za-z\s]+"
-                  title="Solo se permiten letras y espacios"
-                />
-                <label htmlFor="universityName" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Nombre de la Universidad</label>
+                <label htmlFor="universityName" className="text-gray-600">
+                  Nombre de la Universidad
+                </label>
+                <div className="flex items-center mt-1">
+                  <FaUniversity className="text-gray-400 mr-2" size={24} />
+                  <input
+                    type="text"
+                    name="universityName"
+                    id="universityName"
+                    value={formData.universityName}
+                    onChange={handleChange}
+                    className="w-full border-b-2 border-gray-300 focus:border-green-600 focus:outline-none py-1 transition-colors duration-300 ease-in-out"
+                    placeholder="Ingrese el nombre de la universidad"
+                    required
+                    pattern="[A-Za-z\s]+"
+                    title="Solo se permiten letras y espacios"
+                  />
+                </div>
               </div>
+              {/* Subir Carnet de Estudiante */}
               <div className="relative">
-                <input
-                  type="file"
-                  name="studentId"
-                  id="studentId"
-                  accept="image/*"
-                  onChange={handleChange}
-                  className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 pt-4 pb-1 transition-colors duration-300 ease-in-out"
-                  required
-                />
-                <label htmlFor="studentId" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Subir Carnet de Estudiante</label>
+                <label htmlFor="studentId" className="text-gray-600">
+                  Subir Carnet de Estudiante
+                </label>
+                <div className="flex items-center mt-1">
+                  <FaRegIdBadge className="text-gray-400 mr-2" size={24} />
+                  <input
+                    type="file"
+                    name="studentId"
+                    id="studentId"
+                    accept="image/*"
+                    onChange={handleChange}
+                    className="w-full text-gray-900 focus:outline-none py-1 transition-colors duration-300 ease-in-out"
+                    required
+                  />
+                </div>
               </div>
             </>
           )}
+          {/* Correo Electrónico */}
           <div className="relative">
-            <input
-              type="email"
-              name="email"
-              id="email"
-              value={formData.email}
-              onChange={handleChange}
-              className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 placeholder-transparent pt-4 pb-1 transition-colors duration-300 ease-in-out"
-              placeholder="Correo Electrónico"
-              required
-              pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
-              title="Ingrese un correo electrónico válido"
-            />
-            <label htmlFor="email" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Correo Electrónico</label>
+            <label htmlFor="email" className="text-gray-600">
+              Correo Electrónico
+            </label>
+            <div className="flex items-center mt-1">
+              <AiOutlineMail className="text-gray-400 mr-2" size={24} />
+              <input
+                type="email"
+                name="email"
+                id="email"
+                value={formData.email}
+                onChange={handleChange}
+                className="w-full border-b-2 border-gray-300 focus:border-green-600 focus:outline-none py-1 transition-colors duration-300 ease-in-out"
+                placeholder="Ingrese su correo electrónico"
+                required
+              />
+            </div>
           </div>
+          {/* Teléfono */}
           <div className="relative">
-            <input
-              type="tel"
-              name="phone"
-              id="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              className="peer w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-green-600 placeholder-transparent pt-4 pb-1 transition-colors duration-300 ease-in-out"
-              placeholder="Nº de Teléfono/Celular"
-              required
-              pattern="\d{8,10}"
-              title="Debe tener 8 o 10 dígitos"
-            />
-            <label htmlFor="phone" className="absolute left-0 -top-3.5 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm">Nº de Teléfono/Celular</label>
+            <label htmlFor="phone" className="text-gray-600">
+              Nº de Teléfono/Celular
+            </label>
+            <div className="flex items-center mt-1">
+              <AiOutlinePhone className="text-gray-400 mr-2" size={24} />
+              <input
+                type="tel"
+                name="phone"
+                id="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                className="w-full border-b-2 border-gray-300 focus:border-green-600 focus:outline-none py-1 transition-colors duration-300 ease-in-out"
+                placeholder="Ingrese su número de teléfono"
+                required
+                pattern="\d{8,10}"
+                title="Debe tener 8 o 10 dígitos"
+              />
+            </div>
           </div>
+          {/* Botón Enviar */}
           <div className="flex justify-end pt-6">
             <button
               type="submit"
-              className="px-6 py-3 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition-all duration-300 ease-in-out transform hover:scale-105"
+              className="px-6 py-3 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center"
             >
               {loading ? <ClipLoader size={20} color="#ffffff" /> : 'Enviar'}
             </button>
