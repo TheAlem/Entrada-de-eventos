@@ -2,7 +2,7 @@ const functions = require("firebase-functions");
 const { db } = require("../firebaseAdmin");
 
 exports.paymentCallback = functions.https.onRequest(async (req, res) => {
-  console.log("Datos recibidos en la consulta (body):", req.body);
+  console.log("Datos recibidos en la consulta (query):", req.query);
 
   res.set("Access-Control-Allow-Origin", "*");
   res.set("Content-Type", "application/json");
@@ -13,7 +13,7 @@ exports.paymentCallback = functions.https.onRequest(async (req, res) => {
   }
 
   // Asegúrate de que el cuerpo de la solicitud esté siendo interpretado como JSON
-  const { PedidoID, Fecha, Hora, MetodoPago, Estado } = req.body;
+  const { PedidoID, Fecha, Hora, MetodoPago, Estado } = req.query;
 
   // Validar que todos los campos requeridos están presentes
   if (!PedidoID || !Fecha || !Hora || !MetodoPago || !Estado) {
