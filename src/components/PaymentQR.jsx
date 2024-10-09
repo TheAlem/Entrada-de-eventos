@@ -1,16 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { generateQRCode } from '../Firebase/Api/Controller/PagoFacil';
-import {
-  getFirestore,
-  query,
-  where,
-  collection,
-  getDocs,
-  doc,
-  updateDoc,
-  onSnapshot,
-} from 'firebase/firestore';
+import { getFirestore, query, where, collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 import ClipLoader from 'react-spinners/ClipLoader';
 import 'tailwindcss/tailwind.css';
 import { FiDownload } from 'react-icons/fi';
@@ -21,35 +12,32 @@ const PaymentQR = () => {
   const [loading, setLoading] = useState(true);
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const [error, setError] = useState('');
-  const [checkingPayment, setCheckingPayment] = useState(false);
   const navigate = useNavigate();
 
-  // Función para obtener datos del cliente
-  const getClientData = async (clientToken) => {
+  const checkPaymentStatus = async (clientToken) => {
     try {
       const db = getFirestore();
-      const clientsQuery = query(
-        collection(db, 'clientes'),
-        where('token', '==', clientToken)
-      );
+      const clientsQuery = query(collection(db, 'clientes'), where('token', '==', clientToken));
       const clientsSnapshot = await getDocs(clientsQuery);
 
       if (!clientsSnapshot.empty) {
         const clientDoc = clientsSnapshot.docs[0];
-        const clientRef = doc(db, 'clientes', clientDoc.id);
-        return { data: clientDoc.data(), docRef: clientRef };
+        const paymentStatus = clientDoc.data().paymentStatus;
+        if (paymentStatus === true) {
+          setPaymentConfirmed(true);
+          setTimeout(() => navigate(`/entry/${clientToken}`), 3000);
+        } else {
+          setTimeout(() => checkPaymentStatus(clientToken), 2000);
+        }
       } else {
         setError('No se encontró información del cliente.');
-        return null;
       }
     } catch (err) {
-      setError(`Error al obtener información del cliente: ${err.message}`);
-      return null;
+      setError(`Error al verificar el estado de pago: ${err.message}`);
     }
   };
 
-  // Función para generar el QR
-  const handleGenerateQR = async (clientToken, clientRef) => {
+  const handleGenerateQR = async (clientToken) => {
     setLoading(true);
     setError('');
     setQRImage('');
@@ -61,12 +49,12 @@ const PaymentQR = () => {
 
       generateQRCode(clientToken, setQRImage, {
         onSuccess: async (PedidoID, qrCode) => {
-          await updateClientPaymentInfo(clientRef, PedidoID, qrCode);
-          setCheckingPayment(true);
+          await updateClientPaymentInfo(clientToken, PedidoID, qrCode);
+          checkPaymentStatus(clientToken);
           setLoading(false);
         },
         onError: (errorMessage) => {
-          setError(`Error al generar el QR: ${errorMessage}`);
+          setError(`Error al generar el QR:${errorMessage}`);
           setLoading(false);
         },
       });
@@ -76,19 +64,28 @@ const PaymentQR = () => {
     }
   };
 
-  // Función para actualizar la información del cliente
-  const updateClientPaymentInfo = async (clientRef, PedidoID, qrCode) => {
+  const updateClientPaymentInfo = async (clientToken, PedidoID, qrCode) => {
     try {
-      await updateDoc(clientRef, {
-        PedidoID,
-        qrCode: qrCode,
-      });
+      const db = getFirestore();
+      const clientsQuery = query(collection(db, 'clientes'), where('token', '==', clientToken));
+      const clientsSnapshot = await getDocs(clientsQuery);
+
+      if (!clientsSnapshot.empty) {
+        const clientDoc = clientsSnapshot.docs[0];
+        const clientRef = doc(db, 'clientes', clientDoc.id);
+
+        await updateDoc(clientRef, {
+          PedidoID,
+          qrCode: qrCode,
+        });
+      } else {
+        setError('No se encontró información del cliente para actualizar.');
+      }
     } catch (error) {
       setError(`Error al actualizar la información del cliente: ${error.message}`);
     }
   };
 
-  // useEffect inicial
   useEffect(() => {
     const clientToken = localStorage.getItem('userToken');
 
@@ -98,62 +95,9 @@ const PaymentQR = () => {
       return;
     }
 
-    const initializePayment = async () => {
-      const clientResult = await getClientData(clientToken);
-
-      if (clientResult) {
-        const clientData = clientResult.data;
-        const clientRef = clientResult.docRef;
-
-        if (clientData.paymentStatus === true) {
-          setPaymentConfirmed(true);
-          setTimeout(() => navigate(`/entry/${clientToken}`), 3000);
-        } else if (clientData.qrCode) {
-          setQRImage(clientData.qrCode);
-          setLoading(false);
-          setCheckingPayment(true);
-        } else {
-          handleGenerateQR(clientToken, clientRef);
-        }
-      }
-    };
-
-    initializePayment();
+    handleGenerateQR(clientToken);
   }, []);
 
-  // useEffect para verificar el estado de pago en tiempo real
-  useEffect(() => {
-    let unsubscribe;
-
-    const clientToken = localStorage.getItem('userToken');
-
-    if (checkingPayment && clientToken) {
-      const db = getFirestore();
-      const clientsQuery = query(
-        collection(db, 'clientes'),
-        where('token', '==', clientToken)
-      );
-
-      unsubscribe = onSnapshot(clientsQuery, (snapshot) => {
-        if (!snapshot.empty) {
-          const clientData = snapshot.docs[0].data();
-          if (clientData.paymentStatus === true) {
-            setPaymentConfirmed(true);
-            setCheckingPayment(false);
-            setTimeout(() => navigate(`/entry/${clientToken}`), 3000);
-          }
-        }
-      });
-    }
-
-    return () => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
-    };
-  }, [checkingPayment]);
-
-  // Función para descargar el QR
   const handleDownloadQR = () => {
     if (qrImage) {
       const link = document.createElement('a');
@@ -171,16 +115,14 @@ const PaymentQR = () => {
     <div className="min-h-screen flex items-center justify-center bg-white px-4">
       <div className="bg-white relative rounded-3xl shadow-xl p-6 sm:p-10 max-w-xl w-full">
         {/* Encabezado */}
-        <h2 className="text-3xl font-bold text-gray-800 mb-4 text-center">
-          Completa tu Pago
-        </h2>
+        <h2 className="text-3xl font-bold text-gray-800 mb-4 text-center">Completa tu Pago</h2>
         <p className="text-gray-600 text-center mb-6">
           Escanea el código QR para realizar tu pago de forma segura y rápida.
         </p>
 
         {loading ? (
           <div className="flex flex-col items-center">
-            <ClipLoader size={50} color={'#4CAF50'} loading={loading} />
+            <ClipLoader size={50} color={"#4CAF50"} loading={loading} />
             <p className="mt-4 text-lg font-medium text-gray-700 text-center">
               Generando QR, por favor espera...
             </p>
@@ -189,10 +131,7 @@ const PaymentQR = () => {
           <div className="mt-4 bg-red-50 border-l-4 border-red-400 text-red-800 p-4 rounded-lg text-center">
             {error}
             <p className="mt-4">
-              <Link
-                to="/personal-data"
-                className="text-green-700 hover:text-green-900 underline"
-              >
+              <Link to="/personal-data" className="text-green-700 hover:text-green-900 underline">
                 Haz clic aquí para volver al formulario
               </Link>
             </p>
@@ -232,12 +171,10 @@ const PaymentQR = () => {
                 {/* Información adicional */}
                 <div className="mt-6 text-center">
                   <p className="text-gray-700">
-                    Abre tu aplicación bancaria o de pagos y escanea el código
-                    para completar la transacción.
+                    Abre tu aplicación bancaria o de pagos y escanea el código para completar la transacción.
                   </p>
                   <p className="text-gray-500 mt-2">
-                    Una vez realizado el pago, mostraremos su entrada de forma
-                    automática.
+                    Una vez realizado el pago, mostraremos su entrada de forma automatica.
                   </p>
                 </div>
               </div>
