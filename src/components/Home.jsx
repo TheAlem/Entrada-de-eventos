@@ -21,7 +21,7 @@ function Home() {
     <div className="absolute inset-0 flex flex-col justify-center items-center text-white">
         <div className="glass-container p-4 sm:p-8 rounded-3xl text-center max-w-4xl mx-4 backdrop-blur-lg">
             <h1 className="text-3xl sm:text-4xl md:text-6xl font-extrabold mb-4 text-transparent bg-clip-text bg-gradient-to-r drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]" style={{ backgroundColor: '#a60a25' }}>
-                BOLIVIA BLOCKCHAIN SUMMIT 2024
+            MONKEYTICKS
             </h1>
             <p className="text-sm sm:text-lg md:text-xl mb-6">
                 Explora el futuro de la tecnología en nuestro evento exclusivo.

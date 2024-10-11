@@ -27,6 +27,7 @@
     "react-modal": "^3.16.1",
     "react-router-dom": "^6.25.1",
     "react-spinners": "^0.14.1",
+    "shadcn": "^1.0.0",
     "uuid": "^10.0.0"
   },
   "devDependencies": {
