@@ -49,6 +49,8 @@ export const generateQRCode = async (clientToken, setQRImage, callbacks) => {
       ]
     };
 
+    console.log(postData)
+
     // Headers para la solicitud de PagoFacil
     const headers = {
       'Content-Type': 'application/x-www-form-urlencoded',
@@ -64,6 +66,8 @@ export const generateQRCode = async (clientToken, setQRImage, callbacks) => {
       headers: headers,
       data: qs.stringify(postData),
     });
+
+    console.log("Respuesta de PagoFacil:", data);
 
     // Verificar la respuesta de PagoFacil
     if (data && data.values) {

@@ -1,33 +1,93 @@
 import React from 'react';
+import { FaFacebookF, FaInstagram, FaTwitter, FaLinkedinIn } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 
 function Footer() {
-    return (
-        <footer className="shadow-md border-t border-gray-700 py-8 " style={{ backgroundColor: '#183c33' }}>
-            <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
-                <div className="text-gray-200 text-center md:text-left mb-4 md:mb-0">
-                    <h2 className="text-xl font-bold">TRANSACHAIN</h2>
-                    <p className="text-sm">© 2024 The Alem. Todos los derechos reservados.</p>
-                </div>
-                <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-8 text-center md:text-left">
-                    {/* Add any additional footer links or content here */}
-                </div>
-                <div className="flex space-x-4 mt-4 md:mt-0">
-                    <a href="https://www.facebook.com/EnergiaBolivia" className="text-white hover:text-gray-300 transition-colors duration-200">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 2.01L14 2a4 4 0 00-4 4v4H6v4h4v8h4v-8h4l1-4h-5V6a1 1 0 011-1h4V2.01z" />
-                        </svg>
-                    </a>
-                    <a href="https://www.instagram.com/energiabolivia" className="text-white hover:text-gray-300 transition-colors duration-200">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-8 w-8">
-                            <rect x="5" y="3" width="14" height="14" rx="3" strokeWidth="2"></rect>
-                            <circle cx="12" cy="10" r="3.5" strokeWidth="2"></circle>
-                            <circle cx="17" cy="6" r="1" strokeWidth="2"></circle>
-                        </svg>
-                    </a>
-                </div>
-            </div>
-        </footer>
-    );
+  return (
+    <footer
+      className="py-10 px-4 md:px-8 lg:px-16 text-gray-200"
+      style={{ backgroundColor: '#183c33' }}
+    >
+      <div className="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+        {/* Company Info */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold">TRANSACHAIN</h2>
+          <p className="text-sm">
+            TRANSACHAIN es una plataforma líder en soluciones blockchain para transacciones seguras y eficientes.
+          </p>
+          <p className="text-sm">© 2024 TRANSACHAIN. Todos los derechos reservados.</p>
+        </div>
+
+        {/* Navigation Links */}
+        <div className="space-y-2">
+          <h3 className="text-xl font-semibold">Enlaces Rápidos</h3>
+          <ul className="space-y-1">
+            <li>
+              <a href="/" className="hover:text-gray-400 transition-colors duration-200">
+                Inicio
+              </a>
+            </li>
+            <li>
+              <a href="/about" className="hover:text-gray-400 transition-colors duration-200">
+                Sobre Nosotros
+              </a>
+            </li>
+            <li>
+              <a href="/services" className="hover:text-gray-400 transition-colors duration-200">
+                Servicios
+              </a>
+            </li>
+            <li>
+              <a href="/contact" className="hover:text-gray-400 transition-colors duration-200">
+                Contacto
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        {/* Social Media Links */}
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold">Síguenos</h3>
+          <div className="flex space-x-4">
+            <a
+              href="https://www.facebook.com/EnergiaBolivia"
+              className="text-gray-200 hover:text-gray-400 transition-colors duration-200"
+            >
+              <FaFacebookF size={24} />
+            </a>
+            <a
+              href="https://www.instagram.com/energiabolivia"
+              className="text-gray-200 hover:text-gray-400 transition-colors duration-200"
+            >
+              <FaInstagram size={24} />
+            </a>
+            <a
+              href="https://twitter.com/"
+              className="text-gray-200 hover:text-gray-400 transition-colors duration-200"
+            >
+              <FaTwitter size={24} />
+            </a>
+            <a
+              href="https://www.linkedin.com/"
+              className="text-gray-200 hover:text-gray-400 transition-colors duration-200"
+            >
+              <FaLinkedinIn size={24} />
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div className="border-t border-gray-700 mt-8 pt-4">
+        <p className="text-center text-sm">
+          Desarrollado por{' '}
+          <Link to={"/"} className="text-gray-100 hover:text-gray-300 transition-colors duration-200">
+            TRANSACHAIN
+            </Link>
+        </p>
+      </div>
+    </footer>
+  );
 }
 
 export default Footer;
