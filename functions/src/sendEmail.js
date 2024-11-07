@@ -20,16 +20,16 @@ const transporter = nodemailer.createTransport({
 
 function sendMail(email, pdfData, data) {
   const mailOptions = {
-    from: "boliviablockchainsummit@gmail.com",
+    from: "transachain@gmail.com",
     to: email,
-    subject: "Tu entrada para el Bolivia Blockchain Summit 2024",
+    subject: "Tu entrada TRANSACHAIN",
     html: `
       <!DOCTYPE html>
       <html lang="es">
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Bolivia Blockchain Summit 2024</title>
+        <title>TRANSACHAIN</title>
         <style>
           body {
             font-family: Arial, sans-serif;
@@ -88,15 +88,15 @@ function sendMail(email, pdfData, data) {
       </head>
       <body>
         <header>
-          <h1>BOLIVIA BLOCKCHAIN SUMMIT 2024</h1>
+          <h1>TRANSACHAIN</h1>
         </header>
         <main>
           <p style="font-size: 18px;">Estimado/a <strong>${data.firstName},</strong></p>
-          <p>Gracias por registrarte en el Bolivia Blockchain Summit 2024. Adjunta encontrarás tu entrada en formato PDF.</p>
+          <p>Gracias por registrarte dentro de TRANSACHAIN. Adjunta encontrarás tu entrada en formato PDF.</p>
           <div class="event-details">
             <h2>Detalles del evento:</h2>
             <ul>
-              <li><strong>Fecha:</strong> 20 AGO 2024</li>
+              <li><strong>Fecha:</strong> 30 NOV 2024</li>
               <li><strong>Hora:</strong> 08:30 AM</li>
               <li><strong>Ubicación:</strong> Hotel Los Tajibos</li>
             </ul>
@@ -106,13 +106,13 @@ function sendMail(email, pdfData, data) {
         </main>
         <footer>
           <p>Saludos cordiales,</p>
-          <p><strong>Equipo de Bolivia Blockchain Summit</strong></p>
+          <p><strong>Equipo de TRANSACHAIN</strong></p>
         </footer>
       </body>
       </html>
     `,
     attachments: [{
-      filename: "EntradaBoliviaBlockchainSummit2024.pdf",
+      filename: "EntradaTRANSACHAIN.pdf",
       content: pdfData,
       contentType: "application/pdf",
     }],
@@ -155,7 +155,7 @@ exports.sendEmail = functions.firestore.document("clientes/{clientId}")
         try {
           const qrData = {
             token: data.token,
-            event: "Bolivia Blockchain Summit 2024",
+            event: "TRANSACHAIN",
             email: data.email,
           };
 
@@ -206,7 +206,7 @@ exports.sendEmail = functions.firestore.document("clientes/{clientId}")
           pdfDoc.font("Helvetica-Bold")
               .fontSize(20)
               .fillColor(textColor)
-              .text("20 AGO 2024 | 08:30 AM", centerX, currentY, { align: "center" });
+              .text("30 NOV 2024 | 08:30 AM", centerX, currentY, { align: "center" });
 
           currentY += 20;
           pdfDoc.text("Hotel Los Tajibos", centerX, currentY, { align: "center" });

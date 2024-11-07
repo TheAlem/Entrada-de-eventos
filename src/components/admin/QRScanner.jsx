@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import Modal from 'react-modal';
 import axios from 'axios';
-import ScanResultCard from './ScanResultCard'; // Asegúrate de importar la tarjeta aquí
+import ScanResultCard from './ScanResultCard';
 
 const QRScanner = () => {
     const [scanResult, setScanResult] = useState(null);
@@ -55,8 +55,9 @@ const QRScanner = () => {
                 setIsScanning(false);
                 setHasScanned(false);
                 setIsProcessing(false);
-                setModalContent('Escaneo detenido');
-                setModalIsOpen(true);
+                // Opcional: Mostrar un mensaje al detener el escáner
+                // setModalContent('Escaneo detenido');
+                // setModalIsOpen(true);
             }).catch(err => {
                 setModalContent(`Error al detener el escáner: ${err.message}`);
                 setModalIsOpen(true);
@@ -70,17 +71,19 @@ const QRScanner = () => {
         }
 
         setIsProcessing(true);
-        if (hasScanned) {
-            setModalContent('QR ya ha sido escaneado. Por favor, espere.');
-            setModalIsOpen(true);
-            setIsProcessing(false);
-            return;
-        }
-
         setHasScanned(true);
+
+        // Mostrar modal de cargando
+        setModalContent('Procesando QR, por favor espere...');
+        setModalIsOpen(true);
+
         try {
             const qrData = JSON.parse(decodedText);
-            const response = await axios.post('https://us-central1-energiaboliviappandroid.cloudfunctions.net/VerifyQr', { token: qrData.token }, { headers: { 'Content-Type': 'application/json' }});
+            const response = await axios.post(
+                'https://us-central1-transachain.cloudfunctions.net/VerifyQr',
+                { token: qrData.token },
+                { headers: { 'Content-Type': 'application/json' } }
+            );
             if (response.data) {
                 setScanResult(response.data);
                 setModalContent('¡QR escaneado con éxito! Disfruta del evento.');
@@ -91,9 +94,9 @@ const QRScanner = () => {
                 errorMessage = error.response.data.message;
             }
             setModalContent(errorMessage);
-            setModalIsOpen(true);
         } finally {
             setIsProcessing(false);
+            // Detener el escáner y apagar la cámara automáticamente
             stopScanner();
         }
     };
@@ -113,10 +116,18 @@ const QRScanner = () => {
             <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
                 <h2 className="text-2xl font-bold mb-4 text-center text-green-600">Escáner QR</h2>
                 <div className="flex justify-center space-x-4 mb-4">
-                    <button className={`px-4 py-2 rounded-full font-semibold text-white ${isScanning ? 'bg-gray-400' : 'bg-green-500 hover:bg-green-600'}`} onClick={startScanner} disabled={isScanning || hasScanned || isProcessing}>
+                    <button
+                        className={`px-4 py-2 rounded-full font-semibold text-white ${isScanning ? 'bg-gray-400' : 'bg-green-500 hover:bg-green-600'}`}
+                        onClick={startScanner}
+                        disabled={isScanning || hasScanned || isProcessing}
+                    >
                         Iniciar Escaneo
                     </button>
-                    <button className={`px-4 py-2 rounded-full font-semibold text-white ${!isScanning ? 'bg-gray-400' : 'bg-red-500 hover:bg-red-600'}`} onClick={stopScanner} disabled={!isScanning || isProcessing}>
+                    <button
+                        className={`px-4 py-2 rounded-full font-semibold text-white ${!isScanning ? 'bg-gray-400' : 'bg-red-500 hover:bg-red-600'}`}
+                        onClick={stopScanner}
+                        disabled={!isScanning || isProcessing}
+                    >
                         Detener Escaneo
                     </button>
                 </div>
@@ -130,12 +141,59 @@ const QRScanner = () => {
                     </pre>
                 )}
             </div>
-            <Modal isOpen={modalIsOpen} onRequestClose={() => setModalIsOpen(false)} contentLabel="Resultados del Escaneo" className="bg-white rounded-lg p-6 shadow-xl max-w-sm mx-auto mt-20" overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-start">
+            <Modal
+                isOpen={modalIsOpen}
+                onRequestClose={() => setModalIsOpen(false)}
+                contentLabel="Resultados del Escaneo"
+                className="bg-white rounded-lg p-6 shadow-xl max-w-sm mx-auto mt-20"
+                overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-start"
+            >
                 <h2 className="text-xl font-bold mb-4 text-green-600">Resultados del Escaneo</h2>
-                <div className="text-gray-700 mb-4 whitespace-pre-wrap break-words">{modalContent}</div>
-                <button className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-full transition duration-300" onClick={() => setModalIsOpen(false)}>
-                    Cerrar
-                </button>
+                <div className="text-gray-700 mb-4 whitespace-pre-wrap break-words">
+                    {modalContent.includes('Procesando QR') ? (
+                        <div className="flex items-center">
+                            <svg
+                                className="animate-spin h-5 w-5 text-green-600 mr-2"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                            >
+                                <circle
+                                    className="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    strokeWidth="4"
+                                ></circle>
+                                <path
+                                    className="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8v8H4z"
+                                ></path>
+                            </svg>
+                            {modalContent}
+                        </div>
+                    ) : (
+                        modalContent
+                    )}
+                </div>
+                {!modalContent.includes('Procesando QR') && (
+                    <button
+                        className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-full transition duration-300"
+                        onClick={() => {
+                            setModalIsOpen(false);
+                            // Si deseas reanudar el escaneo después de cerrar el modal, puedes hacerlo aquí
+                            // if (qrScanner.current) {
+                            //     qrScanner.current.resume();
+                            //     setIsProcessing(false);
+                            //     setHasScanned(false);
+                            // }
+                        }}
+                    >
+                        Cerrar
+                    </button>
+                )}
             </Modal>
         </div>
     );

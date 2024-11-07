@@ -1,22 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { generateQR } from '../Firebase/Api/api';
-import { getFirestore, doc, updateDoc, query, where, collection, getDocs } from 'firebase/firestore';
+import { generateQRCode } from '../Firebase/Api/Controller/PagoFacil';
+import { getFirestore, query, where, collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 import ClipLoader from 'react-spinners/ClipLoader';
 import 'tailwindcss/tailwind.css';
+import { FiDownload } from 'react-icons/fi';
+import { AiOutlineCheckCircle } from 'react-icons/ai';
 
 const PaymentQR = () => {
-  const [qrData, setQrData] = useState(null);
+  const [qrImage, setQRImage] = useState('');
   const [loading, setLoading] = useState(true);
+  const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const checkPaymentStatus = async (clientToken) => {
     try {
-      if (!clientToken) {
-        throw new Error('Token no disponible. Por favor, intenta nuevamente.');
-      }
-
       const db = getFirestore();
       const clientsQuery = query(collection(db, 'clientes'), where('token', '==', clientToken));
       const clientsSnapshot = await getDocs(clientsQuery);
@@ -25,120 +24,84 @@ const PaymentQR = () => {
         const clientDoc = clientsSnapshot.docs[0];
         const paymentStatus = clientDoc.data().paymentStatus;
         if (paymentStatus === true) {
-          navigate(`/entry/${clientToken}`);
+          setPaymentConfirmed(true);
+          setTimeout(() => navigate(`/entry/${clientToken}`), 3000);
         } else {
-          setTimeout(() => checkPaymentStatus(clientToken), 5000);
+          setTimeout(() => checkPaymentStatus(clientToken), 2000);
         }
       } else {
         setError('No se encontró información del cliente.');
       }
     } catch (err) {
       setError(`Error al verificar el estado de pago: ${err.message}`);
-      console.error('Error en checkPaymentStatus:', err);
     }
   };
 
-  const handleGenerateQR = async (clientData) => {
+  const handleGenerateQR = async (clientToken) => {
     setLoading(true);
     setError('');
+    setQRImage('');
+
     try {
-      if (!clientData) {
-        throw new Error('Datos del cliente no disponibles. Por favor, intenta nuevamente.');
+      if (!clientToken) {
+        throw new Error('Token no disponible. Por favor, intenta nuevamente.');
       }
 
-      const currentDate = new Date();
-      const expirationDate = clientData.qrExpirationDate ? new Date(clientData.qrExpirationDate) : null;
-
-      if (!clientData.qrId || (expirationDate && expirationDate <= currentDate)) {
-        const paymentAmount = clientData.academicLevel === 'Student' ? "100" : "200";
-        const paymentDetails = {
-          currency: "BOB",
-          gloss: "Pago Entrada Evento",
-          amount: paymentAmount,
-          singleUse: "true",
-          expirationDate: "2024-09-01", // Cambia esta fecha según tus necesidades
-          additionalData: `Datos Adicionales - ${new Date().toISOString()}`
-        };
-        const data = await generateQR(paymentDetails);
-
-        if (!data.qrId || !data.qr) {
-          throw new Error('Error al generar el QR. Datos incompletos recibidos.');
-        }
-
-        const qrId = data.qrId;
-        const qrImage = data.qr; // Imagen base64
-        const qrExpirationDate = paymentDetails.expirationDate;
-
-        // Almacenar QRId, imagen base64 y fecha de vencimiento en la base de datos
-        await updateClientQRData(clientData.token, qrId, qrImage, qrExpirationDate);
-
-        setQrData({ qr: qrImage });
-      } else {
-        setQrData({ qr: clientData.qrImage });
-      }
+      generateQRCode(clientToken, setQRImage, {
+        onSuccess: async (PedidoID, qrCode) => {
+          await updateClientPaymentInfo(clientToken, PedidoID, qrCode);
+          checkPaymentStatus(clientToken);
+          setLoading(false);
+        },
+        onError: (errorMessage) => {
+          setError(`Error al generar el QR:${errorMessage}`);
+          setLoading(false);
+        },
+      });
     } catch (err) {
       setError(`Error al generar el QR: ${err.message}`);
-    } finally {
       setLoading(false);
     }
   };
 
-  const updateClientQRData = async (clientToken, qrId, qrImage, qrExpirationDate) => {
+  const updateClientPaymentInfo = async (clientToken, PedidoID, qrCode) => {
     try {
-      if (!clientToken || !qrId || !qrImage || !qrExpirationDate) {
-        throw new Error('Datos incompletos para actualizar el cliente. Por favor, intenta nuevamente.');
-      }
-
-      const db = getFirestore();
-      const clientsQuery = query(collection(db, 'clientes'), where('token', '==', clientToken));
-      const clientsSnapshot = await getDocs(clientsQuery);
-
-      if (!clientsSnapshot.empty) {
-        const clientDoc = clientsSnapshot.docs[0]; // Obtener el primer documento
-        const clientRef = doc(db, 'clientes', clientDoc.id); // Obtener la referencia del documento usando su ID
-        await updateDoc(clientRef, { qrId, qrImage, qrExpirationDate }); // Usar updateDoc para actualizar los campos qrId, qrImage y qrExpirationDate
-        console.log("QRId, imagen y fecha de vencimiento actualizados en el documento del cliente.");
-      } else {
-        console.error("No se encontró el documento del cliente con el token proporcionado.");
-        setError('No se pudo actualizar los datos del cliente. Intenta nuevamente más tarde.');
-      }
-    } catch (err) {
-      console.error('Error al actualizar los datos del cliente:', err);
-      setError(`Error al actualizar los datos del cliente: ${err.message}`);
-    }
-  };
-
-  useEffect(() => {
-    const fetchClientData = async () => {
-      const clientToken = localStorage.getItem('userToken');
-
-      if (!clientToken) {
-        setError('Token no encontrado. Por favor, inicia sesión nuevamente.');
-        setLoading(false);
-        return;
-      }
-
       const db = getFirestore();
       const clientsQuery = query(collection(db, 'clientes'), where('token', '==', clientToken));
       const clientsSnapshot = await getDocs(clientsQuery);
 
       if (!clientsSnapshot.empty) {
         const clientDoc = clientsSnapshot.docs[0];
-        const clientData = clientDoc.data();
-        await handleGenerateQR(clientData);
-        checkPaymentStatus(clientToken);
+        const clientRef = doc(db, 'clientes', clientDoc.id);
+
+        await updateDoc(clientRef, {
+          PedidoID,
+          qrCode: qrCode,
+        });
       } else {
-        setError("No se encontró información del cliente.");
-        setLoading(false);
+        setError('No se encontró información del cliente para actualizar.');
       }
-    };
-    fetchClientData();
+    } catch (error) {
+      setError(`Error al actualizar la información del cliente: ${error.message}`);
+    }
+  };
+
+  useEffect(() => {
+    const clientToken = localStorage.getItem('userToken');
+
+    if (!clientToken) {
+      setError('Token no encontrado. Por favor, inicia sesión nuevamente.');
+      setLoading(false);
+      return;
+    }
+
+    handleGenerateQR(clientToken);
   }, []);
 
   const handleDownloadQR = () => {
-    if (qrData && qrData.qr) {
+    if (qrImage) {
       const link = document.createElement('a');
-      link.href = `data:image/png;base64,${qrData.qr}`;
+      link.href = qrImage;
       link.download = 'qr_code.png';
       document.body.appendChild(link);
       link.click();
@@ -149,43 +112,77 @@ const PaymentQR = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
-      <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full">
-        <h2 className="text-2xl font-extrabold text-gray-800 mb-6 text-center">QR de Pago</h2>
+    <div className="min-h-screen flex items-center justify-center bg-white px-4">
+      <div className="bg-white relative rounded-3xl shadow-xl p-6 sm:p-10 max-w-xl w-full">
+        {/* Encabezado */}
+        <h2 className="text-3xl font-bold text-gray-800 mb-4 text-center">Completa tu Pago</h2>
+        <p className="text-gray-600 text-center mb-6">
+          Escanea el código QR para realizar tu pago de forma segura y rápida.
+        </p>
+
         {loading ? (
           <div className="flex flex-col items-center">
             <ClipLoader size={50} color={"#4CAF50"} loading={loading} />
-            <p className="mt-4 text-lg font-medium text-gray-700">Generando QR...</p>
+            <p className="mt-4 text-lg font-medium text-gray-700 text-center">
+              Generando QR, por favor espera...
+            </p>
+          </div>
+        ) : error ? (
+          <div className="mt-4 bg-red-50 border-l-4 border-red-400 text-red-800 p-4 rounded-lg text-center">
+            {error}
+            <p className="mt-4">
+              <Link to="/personal-data" className="text-green-700 hover:text-green-900 underline">
+                Haz clic aquí para volver al formulario
+              </Link>
+            </p>
+          </div>
+        ) : paymentConfirmed ? (
+          <div className="flex flex-col items-center">
+            <AiOutlineCheckCircle className="text-green-600" size={80} />
+            <p className="mt-4 text-xl font-semibold text-gray-800 text-center">
+              ¡Pago confirmado!
+            </p>
+            <p className="text-gray-600 text-center mt-2">
+              Serás redirigido automáticamente.
+            </p>
           </div>
         ) : (
           <>
-            {qrData && qrData.qr ? (
-              <div className="mt-8 flex justify-center">
-                <img src={`data:image/png;base64,${qrData.qr}`} alt="QR Code" className="w-64 h-64 object-contain border-2 border-gray-300 rounded-lg shadow-md" />
+            {/* Imagen del QR */}
+            {qrImage ? (
+              <div className="flex flex-col items-center">
+                <div className="relative">
+                  <img
+                    src={qrImage}
+                    alt="Código QR"
+                    className="w-full max-w-xs sm:max-w-sm object-contain border-2 border-gray-200 rounded-lg shadow-md"
+                  />
+                  {/* Botón de descarga */}
+                  <button
+                    onClick={handleDownloadQR}
+                    className="mt-4 w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition"
+                  >
+                    <div className="flex items-center justify-center">
+                      <FiDownload className="mr-2" size={24} />
+                      Descargar QR
+                    </div>
+                  </button>
+                </div>
+                {/* Información adicional */}
+                <div className="mt-6 text-center">
+                  <p className="text-gray-700">
+                    Abre tu aplicación bancaria o de pagos y escanea el código para completar la transacción.
+                  </p>
+                  <p className="text-gray-500 mt-2">
+                    Una vez realizado el pago, mostraremos su entrada de forma automatica.
+                  </p>
+                </div>
               </div>
             ) : (
-              <div className="text-lg font-medium text-gray-700 text-center">No se pudo generar el QR</div>
-            )}
-            {error && (
-              <div className="mt-4 bg-red-50 border-l-4 border-red-400 text-red-800 p-4 rounded-lg text-center">
-                {error}
-                <p className="mt-4">
-                  <Link to="/personal-data" className="text-green-700 hover:text-green-900 underline">
-                    Haz clic aquí para volver al formulario
-                  </Link>
-                </p>
+              <div className="text-lg font-medium text-gray-700 text-center mt-6">
+                No se pudo generar el QR
               </div>
             )}
-            <div className="flex flex-col mt-6 space-y-4">
-              {qrData && qrData.qr && (
-                <button
-                  onClick={handleDownloadQR}
-                  className="px-6 py-3 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition-all duration-300 ease-in-out transform hover:scale-105"
-                >
-                  Descargar QR
-                </button>
-              )}
-            </div>
           </>
         )}
       </div>

@@ -1,5 +1,9 @@
 {
   "projects": {
-    "default": "energiaboliviappandroid"
-  }
+    "Jose Alem": "transachain",
+    "default": "transachain"
+  },
+  "targets": {},
+  "etags": {},
+  "dataconnectEmulatorConfig": {}
 }

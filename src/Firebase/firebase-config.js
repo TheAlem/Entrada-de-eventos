@@ -15,13 +15,13 @@ import { getFunctions } from "firebase/functions";
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-    apiKey: "AIzaSyDi_hFczoHVQZ38-esXozxDXtUdbPsQ50c",
-    authDomain: "energiaboliviappandroid.firebaseapp.com",
-    projectId: "energiaboliviappandroid",
-    storageBucket: "energiaboliviappandroid.appspot.com",
-    messagingSenderId: "547502490821",
-    appId: "1:547502490821:web:07b7c381648edcd4b75cac",
-    measurementId: "G-1QG1R84PEH"
+  apiKey: "AIzaSyDaq1SH6X_MKdr0QTX2p57CHJcWeWX1W00",
+  authDomain: "transachain.firebaseapp.com",
+  projectId: "transachain",
+  storageBucket: "transachain.appspot.com",
+  messagingSenderId: "98588303425",
+  appId: "1:98588303425:web:6cbd947e56e37645b326c0",
+  measurementId: "G-DWX4ENTG05"
 };
 
 // Initialize Firebase
@@ -33,3 +33,4 @@ const auth = getAuth(app);
 const functions = getFunctions(app);
 
 export { db, storage, auth, functions };
+

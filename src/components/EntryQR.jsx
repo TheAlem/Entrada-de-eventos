@@ -64,7 +64,7 @@ const EntryQR = () => {
           scale: 3,
           useCORS: true,
           logging: true,
-          windowWidth: 1200,
+          windowWidth: 1800,
           windowHeight: 800
         });
         const image = canvas.toDataURL("image/png");
