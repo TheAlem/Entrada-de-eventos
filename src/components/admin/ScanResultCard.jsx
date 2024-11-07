@@ -1,5 +1,3 @@
-import React from 'react';
-
 const ScanResultCard = ({ result }) => {
     return (
         <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md mt-4">

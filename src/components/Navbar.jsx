@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { FaUserCircle, FaBars, FaTimes } from 'react-icons/fa';
 
@@ -52,19 +52,19 @@ function Navbar() {
                     </Link>
                 </div>
                 <div className="hidden md:flex space-x-4">
-                    <Link to="/personal-data" className={linkClass}>
+                    <Link to="/personal-data" id='nav-datos-personales' className={linkClass}>
                         Datos Personales
                         <span className={underlineClass}></span>
                     </Link>
-                    <Link to={`/payment/${token}`} className={linkClass}>
+                    <Link to={`/payment/${token}`} id='nav-pagos' className={linkClass}>
                         Pago
                         <span className={underlineClass}></span>
                     </Link>
-                    <Link to={`/entry/${token}`} className={linkClass}>
+                    <Link to={`/entry/${token}`} id='nav-entrada' className={linkClass}>
                         Entrada
                         <span className={underlineClass}></span>
                     </Link>
-                    <Link to="/login" className={`${linkClass} flex items-center`}>
+                    <Link to="/login" id='nav-login' className={`${linkClass} flex items-center`}>
                         <FaUserCircle className="text-xl mr-1" /> 
                     </Link>
                 </div>

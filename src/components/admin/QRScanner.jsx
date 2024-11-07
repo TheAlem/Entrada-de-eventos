@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import Modal from 'react-modal';
 import axios from 'axios';
@@ -65,7 +65,7 @@ const QRScanner = () => {
         }
     };
 
-    const onScanSuccess = async (decodedText, decodedResult) => {
+    const onScanSuccess = async (decodedText) => {
         if (isProcessing) {
             return;
         }

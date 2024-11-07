@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { generateQRCode } from '../Firebase/Api/Controller/PagoFacil';
 import { getFirestore, query, where, collection, getDocs, doc, updateDoc } from 'firebase/firestore';

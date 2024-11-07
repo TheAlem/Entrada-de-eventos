@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Firebase/context/AuthContext';
 import {
@@ -400,6 +400,7 @@ function AdminDashboard() {
                               e.target.value
                             )
                           }
+                          id='edit-nombre'
                           className="w-full p-1 border border-gray-300 rounded"
                         />
                       ) : (
@@ -425,6 +426,7 @@ function AdminDashboard() {
                               e.target.value
                             )
                           }
+                          id='edit-profesion'
                           className="w-full p-1 border border-gray-300 rounded"
                         />
                       ) : (
@@ -450,12 +452,14 @@ function AdminDashboard() {
                           <>
                             <button
                               onClick={() => handleSave(ticket.id)}
+                              id='btn-confirmar-edit'
                               className="text-green-600 hover:text-green-800"
                             >
                               <FiCheck size={18} />
                             </button>
                             <button
                               onClick={() => setEditMode(null)}
+                              id='btn-cancelar-edit'
                               className="text-gray-600 hover:text-gray-800"
                             >
                               <FiX size={18} />
@@ -465,6 +469,7 @@ function AdminDashboard() {
                           <>
                             <button
                               onClick={() => handleEdit(ticket)}
+                              id='btn-edit'
                               className="text-yellow-600 hover:text-yellow-800"
                             >
                               <FiEdit size={18} />
@@ -478,6 +483,7 @@ function AdminDashboard() {
                               !ticket.paymentStatus
                             )
                           }
+                          id='btn-pago'
                           className="text-green-600 hover:text-green-800"
                         >
                           <FiDollarSign size={18} />
