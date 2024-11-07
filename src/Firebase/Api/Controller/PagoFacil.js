@@ -1,4 +1,4 @@
-import $, { post } from 'jquery';
+import $ from 'jquery';
 import qs from 'qs';
 import { collection, getDocs, query, where, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase-config.js'; // Importa la configuración de Firebase
@@ -42,9 +42,9 @@ export const generateQRCode = async (clientToken, setQRImage, callbacks) => {
           Serial: 1,
           Producto: "Entrada Evento",
           Cantidad: 1,
-          Precio: paymentAmount,
+          Precio: 0.01,
           Descuento: 0,
-          Total: paymentAmount
+          Total: 0.01
         }
       ]
     };
